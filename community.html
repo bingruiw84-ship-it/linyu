@@ -1,0 +1,588 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="preconnect" href="https://unpkg.com" />
+  <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+  <script src="https://unpkg.com/@fortawesome/fontawesome-free@6.7.2/js/all.min.js"></script>
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <style>
+    * {
+      scrollbar-width: none;
+      scrollbar-color: rgba(0, 0, 0, 0.2) transparent;
+    }
+  </style>
+</head>
+
+<body class="bg-warm-bg text-deep-gray font-body antialiased dark:bg-dark-bg dark:text-warm-gray transition-colors duration-300">
+
+<link rel="stylesheet" href="https://fonts.googleapis.cn/css2?family=Noto+Sans+SC:wght@300;400;500;600;700&family=Noto+Serif+SC:wght@400;600;700&family=DM+Sans:wght@400;500;600;700&display=swap" />
+
+<style type="text/tailwindcss">
+  @theme {
+    --color-primary: #C45C3E;
+    --color-primary-light: #D4725A;
+    --color-accent: #D4A574;
+    --color-accent-light: #E8C9A0;
+    --color-sandstone: #B85450;
+    --color-deep-gray: #2D2D2D;
+    --color-warm-gray: #F5F0EB;
+    --color-warm-bg: #FAF8F5;
+    --color-dark-bg: #1A1A1A;
+    --color-dark-surface: #252525;
+    --color-dark-border: #3A3A3A;
+    --color-node-city: #C45C3E;
+    --color-node-person: #5B8DB8;
+    --color-node-sound: #9B7EC8;
+    --color-node-book: #D4A574;
+    --color-node-folk: #6B9B8A;
+    --font-body: 'DM Sans', 'Noto Sans SC', 'PingFang SC', 'Microsoft YaHei', sans-serif;
+    --font-display: 'Noto Serif SC', 'PingFang SC', serif;
+  }
+
+  @keyframes breathe {
+    0%, 100% { opacity: 0.4; transform: scale(1); }
+    50% { opacity: 1; transform: scale(1.1); }
+  }
+  @keyframes slideIn {
+    from { opacity: 0; transform: translateY(8px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+  .animate-breathe { animation: breathe 3s ease-in-out infinite; }
+  .animate-slide-in { animation: slideIn 0.4s ease-out forwards; }
+
+  .nav-item {
+    @apply flex items-center gap-3 px-4 py-2.5 rounded-lg text-sm font-medium transition-all duration-200 cursor-pointer;
+  }
+  .nav-item:hover { @apply bg-primary/10 text-primary; }
+  .nav-item.active { @apply bg-primary/12 text-primary font-semibold; }
+  .dark .nav-item:hover { @apply bg-primary/20; }
+  .dark .nav-item.active { @apply bg-primary/25; }
+
+  .post-card {
+    @apply bg-white dark:bg-dark-surface rounded-2xl border border-deep-gray/8 dark:border-dark-border hover:border-primary/20 hover:shadow-lg hover:shadow-primary/5 hover:-translate-y-0.5 transition-all duration-300 cursor-pointer overflow-hidden;
+  }
+</style>
+
+<!-- Top Bar -->
+<header class="fixed top-0 left-0 right-0 h-16 bg-white/80 dark:bg-dark-surface/90 backdrop-blur-md border-b border-deep-gray/8 dark:border-dark-border z-50 flex items-center px-6">
+  <div class="flex items-center gap-2 w-60">
+    <div class="w-8 h-8 bg-primary rounded-lg flex items-center justify-center">
+      <span class="text-white font-bold text-sm font-[--font-display]">醒</span>
+    </div>
+    <span class="text-lg font-semibold font-[--font-display] text-deep-gray dark:text-warm-gray">醒城</span>
+  </div>
+  <div class="flex-1 max-w-xl mx-auto">
+    <div class="relative">
+      <i data-lucide="search" class="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-deep-gray/40 dark:text-warm-gray/40"></i>
+      <input type="text" placeholder="搜索帖子、作品、话题..." class="w-full h-10 pl-10 pr-4 bg-warm-gray/60 dark:bg-dark-border/60 rounded-xl border-none text-sm text-deep-gray dark:text-warm-gray placeholder:text-deep-gray/40 dark:placeholder:text-warm-gray/40 focus:outline-none focus:ring-2 focus:ring-primary/30" />
+    </div>
+  </div>
+  <div class="flex items-center gap-4 w-60 justify-end">
+    <button id="themeToggle" class="w-9 h-9 rounded-lg flex items-center justify-center hover:bg-warm-gray dark:hover:bg-dark-border transition-colors">
+      <i data-lucide="sun" class="w-4.5 h-4.5 text-deep-gray/60 dark:text-warm-gray/60 dark:hidden"></i>
+      <i data-lucide="moon" class="w-4.5 h-4.5 text-warm-gray/60 hidden dark:block"></i>
+    </button>
+    <button class="w-9 h-9 rounded-lg flex items-center justify-center hover:bg-warm-gray dark:hover:bg-dark-border transition-colors relative">
+      <i data-lucide="bell" class="w-4.5 h-4.5 text-deep-gray/60 dark:text-warm-gray/60"></i>
+      <span class="absolute top-1.5 right-1.5 w-2 h-2 bg-primary rounded-full"></span>
+    </button>
+    <div class="w-8 h-8 rounded-full bg-gradient-to-br from-primary to-accent flex items-center justify-center text-white text-xs font-semibold">李</div>
+  </div>
+</header>
+
+<!-- Left Sidebar -->
+<aside class="fixed top-16 left-0 w-60 h-[calc(100vh-4rem)] bg-white dark:bg-dark-surface border-r border-deep-gray/8 dark:border-dark-border py-6 px-3 overflow-y-auto z-40">
+  <nav class="space-y-1">
+    <a href="#home" class="nav-item" data-page="home"><i data-lucide="layout-dashboard" class="w-4.5 h-4.5"></i><span>首页</span></a>
+    <a href="#explore" class="nav-item" data-page="explore"><i data-lucide="map-pin" class="w-4.5 h-4.5"></i><span>游城</span></a>
+    <a href="#books" class="nav-item" data-page="books"><i data-lucide="book-open" class="w-4.5 h-4.5"></i><span>寻书</span></a>
+    <a href="#create" class="nav-item" data-page="create"><i data-lucide="pen-tool" class="w-4.5 h-4.5"></i><span>共创</span></a>
+    <a href="#graph" class="nav-item" data-page="graph"><i data-lucide="git-branch" class="w-4.5 h-4.5"></i><span>知识图谱</span></a>
+    <a href="#studio" class="nav-item" data-page="studio"><i data-lucide="layers" class="w-4.5 h-4.5"></i><span>叙事工作室</span></a>
+    <a href="#data" class="nav-item" data-page="data"><i data-lucide="bar-chart-3" class="w-4.5 h-4.5"></i><span>数据看板</span></a>
+    <a href="#ancient" class="nav-item" data-page="ancient"><i data-lucide="scroll" class="w-4.5 h-4.5"></i><span>古籍阅读</span></a>
+    <a href="#community" class="nav-item active" data-page="community"><i data-lucide="users" class="w-4.5 h-4.5"></i><span>社区论坛</span></a>
+  </nav>
+  <div class="mt-auto pt-6 border-t border-deep-gray/8 dark:border-dark-border mt-8">
+    <a href="#settings" class="nav-item" data-page="settings"><i data-lucide="settings" class="w-4.5 h-4.5"></i><span>设置</span></a>
+  </div>
+</aside>
+
+<!-- Main Content -->
+<main class="ml-60 pt-16 min-h-screen flex">
+
+  <!-- Left Auxiliary Panel -->
+  <div class="w-56 flex-shrink-0 bg-white dark:bg-dark-surface border-r border-deep-gray/8 dark:border-dark-border h-[calc(100vh-4rem)] sticky top-16 overflow-y-auto">
+    <div class="p-5">
+      <!-- Hot Tags -->
+      <div class="mb-6">
+        <h4 class="text-xs font-semibold text-deep-gray/50 dark:text-warm-gray/50 uppercase tracking-wide mb-3">热门话题</h4>
+        <div class="flex flex-wrap gap-1.5">
+          <span class="text-xs px-2.5 py-1.5 bg-primary/8 text-primary rounded-full hover:bg-primary/15 cursor-pointer transition-colors font-medium">#榆林古城线</span>
+          <span class="text-xs px-2.5 py-1.5 bg-node-sound/8 text-node-sound rounded-full hover:bg-node-sound/15 cursor-pointer transition-colors font-medium">#陕北说书</span>
+          <span class="text-xs px-2.5 py-1.5 bg-node-city/8 text-node-city rounded-full hover:bg-node-city/15 cursor-pointer transition-colors font-medium">#长城探索</span>
+          <span class="text-xs px-2.5 py-1.5 bg-node-book/8 text-node-book rounded-full hover:bg-node-book/15 cursor-pointer transition-colors font-medium">#古籍共读</span>
+          <span class="text-xs px-2.5 py-1.5 bg-node-folk/8 text-node-folk rounded-full hover:bg-node-folk/15 cursor-pointer transition-colors font-medium">#黄土高原</span>
+          <span class="text-xs px-2.5 py-1.5 bg-sandstone/8 text-sandstone rounded-full hover:bg-sandstone/15 cursor-pointer transition-colors font-medium">#城墙记忆</span>
+          <span class="text-xs px-2.5 py-1.5 bg-accent/8 text-accent rounded-full hover:bg-accent/15 cursor-pointer transition-colors font-medium">#民俗手艺</span>
+          <span class="text-xs px-2.5 py-1.5 bg-node-person/8 text-node-person rounded-full hover:bg-node-person/15 cursor-pointer transition-colors font-medium">#老城故事</span>
+        </div>
+      </div>
+
+      <!-- Following -->
+      <div class="mb-6">
+        <h4 class="text-xs font-semibold text-deep-gray/50 dark:text-warm-gray/50 uppercase tracking-wide mb-3">关注作者</h4>
+        <div class="space-y-3">
+          <div class="flex items-center gap-2.5">
+            <div class="w-7 h-7 rounded-full bg-gradient-to-br from-node-person to-node-person/60 flex items-center justify-center text-white text-[9px] font-medium">王</div>
+            <div class="flex-1 min-w-0">
+              <p class="text-xs font-medium text-deep-gray dark:text-warm-gray truncate">王雨萱</p>
+              <p class="text-[10px] text-deep-gray/40 dark:text-warm-gray/40 truncate">发布了新作品</p>
+            </div>
+            <div class="w-1.5 h-1.5 bg-node-folk rounded-full flex-shrink-0"></div>
+          </div>
+          <div class="flex items-center gap-2.5">
+            <div class="w-7 h-7 rounded-full bg-gradient-to-br from-node-folk to-node-folk/60 flex items-center justify-center text-white text-[9px] font-medium">陈</div>
+            <div class="flex-1 min-w-0">
+              <p class="text-xs font-medium text-deep-gray dark:text-warm-gray truncate">陈志远</p>
+              <p class="text-[10px] text-deep-gray/40 dark:text-warm-gray/40 truncate">评论了你的帖子</p>
+            </div>
+          </div>
+          <div class="flex items-center gap-2.5">
+            <div class="w-7 h-7 rounded-full bg-gradient-to-br from-accent to-accent/60 flex items-center justify-center text-white text-[9px] font-medium">刘</div>
+            <div class="flex-1 min-w-0">
+              <p class="text-xs font-medium text-deep-gray dark:text-warm-gray truncate">刘文静</p>
+              <p class="text-[10px] text-deep-gray/40 dark:text-warm-gray/40 truncate">3小时前活跃</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- My Works -->
+      <div>
+        <h4 class="text-xs font-semibold text-deep-gray/50 dark:text-warm-gray/50 uppercase tracking-wide mb-3">我的作品</h4>
+        <div class="space-y-2">
+          <div class="p-2 rounded-xl bg-warm-gray/40 dark:bg-dark-border/40 hover:bg-warm-gray dark:hover:bg-dark-border cursor-pointer transition-colors">
+            <div class="w-full h-16 rounded-lg bg-gradient-to-br from-primary/20 to-accent/20 flex items-center justify-center mb-2">
+              <i data-lucide="image" class="w-5 h-5 text-primary/40"></i>
+            </div>
+            <p class="text-[11px] font-medium text-deep-gray dark:text-warm-gray truncate">城门往事</p>
+          </div>
+          <div class="p-2 rounded-xl bg-warm-gray/40 dark:bg-dark-border/40 hover:bg-warm-gray dark:hover:bg-dark-border cursor-pointer transition-colors">
+            <div class="w-full h-16 rounded-lg bg-gradient-to-br from-node-sound/20 to-node-folk/20 flex items-center justify-center mb-2">
+              <i data-lucide="music" class="w-5 h-5 text-node-sound/40"></i>
+            </div>
+            <p class="text-[11px] font-medium text-deep-gray dark:text-warm-gray truncate">榆林声音地图</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Feed Area -->
+  <div class="flex-1 min-w-0">
+    <!-- Sub-header -->
+    <div class="sticky top-16 z-30 bg-warm-bg/95 dark:bg-dark-bg/95 backdrop-blur-sm border-b border-deep-gray/6 dark:border-dark-border px-6 py-3">
+      <div class="flex items-center justify-between">
+        <div class="flex items-center gap-3">
+          <h2 class="text-lg font-bold font-[--font-display] text-deep-gray dark:text-warm-gray">醒城社区</h2>
+        </div>
+        <div class="flex items-center gap-3">
+          <!-- Publish Button -->
+          <div class="relative group">
+            <button class="inline-flex items-center gap-2 px-4 py-2 bg-primary text-white text-sm font-medium rounded-xl hover:bg-primary-light transition-colors">
+              <i data-lucide="plus" class="w-4 h-4"></i>发布
+            </button>
+            <!-- Dropdown -->
+            <div class="absolute right-0 top-full mt-1 w-36 bg-white dark:bg-dark-surface rounded-xl shadow-xl border border-deep-gray/8 dark:border-dark-border py-1.5 hidden group-hover:block z-20">
+              <a class="flex items-center gap-2 px-3 py-2 text-sm text-deep-gray dark:text-warm-gray hover:bg-warm-gray dark:hover:bg-dark-border transition-colors">
+                <i data-lucide="file-text" class="w-3.5 h-3.5"></i>发帖子
+              </a>
+              <a class="flex items-center gap-2 px-3 py-2 text-sm text-deep-gray dark:text-warm-gray hover:bg-warm-gray dark:hover:bg-dark-border transition-colors">
+                <i data-lucide="image" class="w-3.5 h-3.5"></i>发作品
+              </a>
+              <a class="flex items-center gap-2 px-3 py-2 text-sm text-deep-gray dark:text-warm-gray hover:bg-warm-gray dark:hover:bg-dark-border transition-colors">
+                <i data-lucide="help-circle" class="w-3.5 h-3.5"></i>提问题
+              </a>
+            </div>
+          </div>
+        </div>
+      </div>
+      <!-- Filter Tabs + Sort -->
+      <div class="flex items-center justify-between mt-3">
+        <div class="flex gap-1 bg-warm-gray/60 dark:bg-dark-border/60 p-0.5 rounded-lg">
+          <button class="px-3 py-1.5 text-xs font-medium rounded-md bg-white dark:bg-dark-surface text-deep-gray dark:text-warm-gray shadow-sm">全部</button>
+          <button class="px-3 py-1.5 text-xs font-medium rounded-md text-deep-gray/50 dark:text-warm-gray/50">探索心得</button>
+          <button class="px-3 py-1.5 text-xs font-medium rounded-md text-deep-gray/50 dark:text-warm-gray/50">共创作品</button>
+          <button class="px-3 py-1.5 text-xs font-medium rounded-md text-deep-gray/50 dark:text-warm-gray/50">话题讨论</button>
+          <button class="px-3 py-1.5 text-xs font-medium rounded-md text-deep-gray/50 dark:text-warm-gray/50">求助问答</button>
+        </div>
+        <div class="flex items-center gap-1 text-xs text-deep-gray/50 dark:text-warm-gray/50">
+          <button class="px-2 py-1 rounded font-medium text-primary bg-primary/8">最新</button>
+          <button class="px-2 py-1 rounded font-medium hover:text-deep-gray dark:hover:text-warm-gray transition-colors">最热</button>
+          <button class="px-2 py-1 rounded font-medium hover:text-deep-gray dark:hover:text-warm-gray transition-colors">精华</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Feed Content -->
+    <div class="p-6">
+      <!-- Masonry-like layout with CSS columns -->
+      <div class="columns-2 gap-5 space-y-5">
+
+        <!-- Card 1: Co-creation Work (Large cover) -->
+        <div class="post-card break-inside-avoid">
+          <div class="relative w-full h-52 bg-gradient-to-br from-primary/15 via-accent/10 to-sandstone/15 flex items-center justify-center">
+            <div class="text-center">
+              <i data-lucide="map" class="w-12 h-12 text-primary/30 mx-auto mb-2"></i>
+              <span class="text-xs text-deep-gray/30 dark:text-warm-gray/30">作品封面</span>
+            </div>
+            <div class="absolute top-3 left-3">
+              <span class="text-[10px] px-2 py-1 bg-primary text-white rounded-full font-medium">城市故事</span>
+            </div>
+          </div>
+          <div class="p-5">
+            <h3 class="text-base font-semibold text-deep-gray dark:text-warm-gray mb-2">我们的榆林：城墙记忆</h3>
+            <p class="text-xs text-deep-gray/50 dark:text-warm-gray/50 mb-3 line-clamp-2">一群热爱榆林古城的年轻人，沿着城墙遗迹行走，用影像和文字记录下正在消逝的城门故事。</p>
+            <div class="flex items-center gap-2 mb-3">
+              <div class="flex -space-x-1.5">
+                <div class="w-6 h-6 rounded-full bg-gradient-to-br from-primary to-accent flex items-center justify-center text-white text-[8px] font-medium border-2 border-white dark:border-dark-surface">李</div>
+                <div class="w-6 h-6 rounded-full bg-gradient-to-br from-node-person to-node-person/60 flex items-center justify-center text-white text-[8px] font-medium border-2 border-white dark:border-dark-surface">王</div>
+                <div class="w-6 h-6 rounded-full bg-gradient-to-br from-node-folk to-node-folk/60 flex items-center justify-center text-white text-[8px] font-medium border-2 border-white dark:border-dark-surface">陈</div>
+              </div>
+              <span class="text-[10px] text-deep-gray/40 dark:text-warm-gray/40">3 位协作者</span>
+            </div>
+            <div class="flex items-center gap-4 text-xs text-deep-gray/40 dark:text-warm-gray/40">
+              <span class="flex items-center gap-1"><i data-lucide="eye" class="w-3.5 h-3.5"></i>342</span>
+              <span class="flex items-center gap-1"><i data-lucide="heart" class="w-3.5 h-3.5"></i>56</span>
+              <span class="flex items-center gap-1"><i data-lucide="message-circle" class="w-3.5 h-3.5"></i>12</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Card 2: Exploration -->
+        <div class="post-card break-inside-avoid">
+          <div class="p-5">
+            <div class="flex items-center gap-2.5 mb-3">
+              <div class="w-8 h-8 rounded-full bg-gradient-to-br from-node-person to-node-person/60 flex items-center justify-center text-white text-xs font-medium">王</div>
+              <div>
+                <p class="text-sm font-medium text-deep-gray dark:text-warm-gray">王雨萱</p>
+                <p class="text-[10px] text-deep-gray/40 dark:text-warm-gray/40">2小时前 · 探索心得</p>
+              </div>
+            </div>
+            <p class="text-sm text-deep-gray/80 dark:text-warm-gray/80 leading-relaxed mb-3">今天重访了凯歌楼，发现楼下的石碑上刻着一段我之前从未注意到的铭文。拓片已经做好，准备和《榆林府志》中的记载做对照研究。</p>
+            <!-- Embedded map snippet -->
+            <div class="w-full h-28 bg-warm-gray/50 dark:bg-dark-border/50 rounded-xl mb-3 flex items-center justify-center relative overflow-hidden">
+              <div class="absolute inset-0 bg-gradient-to-br from-primary/5 to-accent/5"></div>
+              <div class="relative flex items-center gap-2">
+                <div class="w-3 h-3 bg-primary rounded-full animate-breathe"></div>
+                <span class="text-xs text-deep-gray/40 dark:text-warm-gray/40">凯歌楼 · 探索节点</span>
+              </div>
+            </div>
+            <!-- Fragment card -->
+            <div class="inline-flex items-center gap-2 px-3 py-2 bg-primary/6 dark:bg-primary/12 rounded-lg border border-primary/10 mb-3">
+              <i data-lucide="puzzle" class="w-3.5 h-3.5 text-primary"></i>
+              <span class="text-xs font-medium text-primary">碎片：凯歌楼铭文</span>
+            </div>
+            <div class="flex items-center gap-4 text-xs text-deep-gray/40 dark:text-warm-gray/40 pt-3 border-t border-deep-gray/6 dark:border-dark-border">
+              <button class="flex items-center gap-1 hover:text-primary transition-colors"><i data-lucide="heart" class="w-3.5 h-3.5"></i>23</button>
+              <button class="flex items-center gap-1 hover:text-primary transition-colors"><i data-lucide="message-circle" class="w-3.5 h-3.5"></i>5</button>
+              <button class="flex items-center gap-1 hover:text-primary transition-colors"><i data-lucide="bookmark" class="w-3.5 h-3.5"></i></button>
+              <button class="flex items-center gap-1 hover:text-primary transition-colors ml-auto"><i data-lucide="share-2" class="w-3.5 h-3.5"></i></button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Card 3: Topic Discussion -->
+        <div class="post-card break-inside-avoid">
+          <div class="p-5">
+            <div class="flex items-center gap-2 mb-3">
+              <i data-lucide="message-square" class="w-4 h-4 text-node-sound"></i>
+              <span class="text-xs font-medium text-node-sound">话题讨论</span>
+            </div>
+            <h3 class="text-sm font-semibold text-deep-gray dark:text-warm-gray mb-2">关于陕北说书的数字化保护，你有什么想法？</h3>
+            <p class="text-xs text-deep-gray/50 dark:text-warm-gray/50 mb-3 line-clamp-2">随着老一辈艺人的离去，很多说书曲目正在失传。我们是否可以通过醒城平台做一些记录和传承的工作？</p>
+            <div class="flex items-center justify-between">
+              <div class="flex items-center gap-2">
+                <div class="flex -space-x-1">
+                  <div class="w-5 h-5 rounded-full bg-gradient-to-br from-node-folk to-node-folk/60 flex items-center justify-center text-white text-[7px] font-medium border border-white dark:border-dark-surface">陈</div>
+                  <div class="w-5 h-5 rounded-full bg-gradient-to-br from-accent to-accent/60 flex items-center justify-center text-white text-[7px] font-medium border border-white dark:border-dark-surface">刘</div>
+                  <div class="w-5 h-5 rounded-full bg-gradient-to-br from-node-person to-node-person/60 flex items-center justify-center text-white text-[7px] font-medium border border-white dark:border-dark-surface">张</div>
+                </div>
+                <span class="text-[10px] text-deep-gray/40 dark:text-warm-gray/40">18 人参与</span>
+              </div>
+              <span class="text-[10px] text-deep-gray/40 dark:text-warm-gray/40">最新回复 30分钟前</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Card 4: Co-creation Work (Soundscape) -->
+        <div class="post-card break-inside-avoid">
+          <div class="relative w-full h-40 bg-gradient-to-br from-node-sound/15 via-node-folk/10 to-node-person/15 flex items-center justify-center">
+            <div class="text-center">
+              <i data-lucide="headphones" class="w-10 h-10 text-node-sound/30 mx-auto mb-2"></i>
+              <span class="text-xs text-deep-gray/30 dark:text-warm-gray/30">声音地图</span>
+            </div>
+            <div class="absolute top-3 left-3">
+              <span class="text-[10px] px-2 py-1 bg-node-sound text-white rounded-full font-medium">声音地图</span>
+            </div>
+          </div>
+          <div class="p-5">
+            <h3 class="text-base font-semibold text-deep-gray dark:text-warm-gray mb-2">榆林声音地图：消逝的叫卖</h3>
+            <p class="text-xs text-deep-gray/50 dark:text-warm-gray/50 mb-3 line-clamp-2">收录了老城区里即将消逝的二十余种传统叫卖声，每一段声音都标注了录制地点和背后的故事。</p>
+            <div class="flex items-center gap-2 mb-3">
+              <div class="flex -space-x-1.5">
+                <div class="w-6 h-6 rounded-full bg-gradient-to-br from-primary to-accent flex items-center justify-center text-white text-[8px] font-medium border-2 border-white dark:border-dark-surface">李</div>
+                <div class="w-6 h-6 rounded-full bg-gradient-to-br from-node-folk to-node-folk/60 flex items-center justify-center text-white text-[8px] font-medium border-2 border-white dark:border-dark-surface">陈</div>
+              </div>
+              <span class="text-[10px] text-deep-gray/40 dark:text-warm-gray/40">2 位协作者</span>
+            </div>
+            <div class="flex items-center gap-4 text-xs text-deep-gray/40 dark:text-warm-gray/40">
+              <span class="flex items-center gap-1"><i data-lucide="eye" class="w-3.5 h-3.5"></i>189</span>
+              <span class="flex items-center gap-1"><i data-lucide="heart" class="w-3.5 h-3.5"></i>38</span>
+              <span class="flex items-center gap-1"><i data-lucide="message-circle" class="w-3.5 h-3.5"></i>7</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Card 5: Exploration Post -->
+        <div class="post-card break-inside-avoid">
+          <div class="p-5">
+            <div class="flex items-center gap-2.5 mb-3">
+              <div class="w-8 h-8 rounded-full bg-gradient-to-br from-node-folk to-node-folk/60 flex items-center justify-center text-white text-xs font-medium">陈</div>
+              <div>
+                <p class="text-sm font-medium text-deep-gray dark:text-warm-gray">陈志远</p>
+                <p class="text-[10px] text-deep-gray/40 dark:text-warm-gray/40">昨天 18:45 · 探索心得</p>
+              </div>
+            </div>
+            <p class="text-sm text-deep-gray/80 dark:text-warm-gray/80 leading-relaxed mb-3">在镇北台遇到了一位来自西安的历史研究者，他说镇北台的修建年代比我们想象的更早。我查阅了《延绥镇志》的相关记载，发现和他的说法有出入，准备做进一步考证。</p>
+            <div class="flex items-center gap-4 text-xs text-deep-gray/40 dark:text-warm-gray/40 pt-3 border-t border-deep-gray/6 dark:border-dark-border">
+              <button class="flex items-center gap-1 hover:text-primary transition-colors"><i data-lucide="heart" class="w-3.5 h-3.5"></i>41</button>
+              <button class="flex items-center gap-1 hover:text-primary transition-colors"><i data-lucide="message-circle" class="w-3.5 h-3.5"></i>9</button>
+              <button class="flex items-center gap-1 hover:text-primary transition-colors"><i data-lucide="bookmark" class="w-3.5 h-3.5"></i></button>
+              <button class="flex items-center gap-1 hover:text-primary transition-colors ml-auto"><i data-lucide="share-2" class="w-3.5 h-3.5"></i></button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Card 6: Question -->
+        <div class="post-card break-inside-avoid">
+          <div class="p-5">
+            <div class="flex items-center gap-2 mb-3">
+              <i data-lucide="help-circle" class="w-4 h-4 text-accent"></i>
+              <span class="text-xs font-medium text-accent">求助问答</span>
+            </div>
+            <div class="flex items-center gap-2.5 mb-3">
+              <div class="w-7 h-7 rounded-full bg-gradient-to-br from-sandstone to-sandstone/60 flex items-center justify-center text-white text-[9px] font-medium">赵</div>
+              <div>
+                <p class="text-xs font-medium text-deep-gray dark:text-warm-gray">赵小凡</p>
+                <p class="text-[10px] text-deep-gray/40 dark:text-warm-gray/40">5小时前</p>
+              </div>
+            </div>
+            <h3 class="text-sm font-semibold text-deep-gray dark:text-warm-gray mb-2">红石峡的石刻有哪些值得关注的？</h3>
+            <p class="text-xs text-deep-gray/50 dark:text-warm-gray/50 mb-3">第一次去红石峡，想提前做功课。有没有前辈推荐一下必看的石刻和相关背景故事？</p>
+            <div class="flex items-center justify-between text-xs text-deep-gray/40 dark:text-warm-gray/40">
+              <span>3 个回答</span>
+              <span class="text-[10px] px-2 py-0.5 bg-node-folk/10 text-node-folk rounded-full font-medium">已解答</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Card 7: Cultural Map Work -->
+        <div class="post-card break-inside-avoid">
+          <div class="relative w-full h-44 bg-gradient-to-br from-node-folk/15 via-accent/10 to-node-book/15 flex items-center justify-center">
+            <div class="text-center">
+              <i data-lucide="map-pin" class="w-10 h-10 text-node-folk/30 mx-auto mb-2"></i>
+              <span class="text-xs text-deep-gray/30 dark:text-warm-gray/30">文化地图</span>
+            </div>
+            <div class="absolute top-3 left-3">
+              <span class="text-[10px] px-2 py-1 bg-node-folk text-white rounded-full font-medium">文化地图</span>
+            </div>
+          </div>
+          <div class="p-5">
+            <h3 class="text-base font-semibold text-deep-gray dark:text-warm-gray mb-2">榆林民俗手艺地图</h3>
+            <p class="text-xs text-deep-gray/50 dark:text-warm-gray/50 mb-3">标记了12位民间手艺人的工作坊位置，涵盖剪纸、石雕、泥塑等传统工艺。</p>
+            <div class="flex items-center gap-2 mb-3">
+              <div class="flex -space-x-1.5">
+                <div class="w-6 h-6 rounded-full bg-gradient-to-br from-accent to-accent/60 flex items-center justify-center text-white text-[8px] font-medium border-2 border-white dark:border-dark-surface">刘</div>
+                <div class="w-6 h-6 rounded-full bg-gradient-to-br from-sandstone to-sandstone/60 flex items-center justify-center text-white text-[8px] font-medium border-2 border-white dark:border-dark-surface">赵</div>
+              </div>
+              <span class="text-[10px] text-deep-gray/40 dark:text-warm-gray/40">2 位协作者</span>
+            </div>
+            <div class="flex items-center gap-4 text-xs text-deep-gray/40 dark:text-warm-gray/40">
+              <span class="flex items-center gap-1"><i data-lucide="eye" class="w-3.5 h-3.5"></i>267</span>
+              <span class="flex items-center gap-1"><i data-lucide="heart" class="w-3.5 h-3.5"></i>45</span>
+              <span class="flex items-center gap-1"><i data-lucide="message-circle" class="w-3.5 h-3.5"></i>8</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Card 8: Discussion -->
+        <div class="post-card break-inside-avoid">
+          <div class="p-5">
+            <div class="flex items-center gap-2 mb-3">
+              <i data-lucide="message-square" class="w-4 h-4 text-node-sound"></i>
+              <span class="text-xs font-medium text-node-sound">话题讨论</span>
+            </div>
+            <h3 class="text-sm font-semibold text-deep-gray dark:text-warm-gray mb-2">榆林古城的城门应该如何复原？</h3>
+            <p class="text-xs text-deep-gray/50 dark:text-warm-gray/50 mb-3 line-clamp-2">看到政府有计划修缮部分古城遗迹，作为醒城用户，我们积累的碎片资料是否可以为复原方案提供参考？</p>
+            <div class="flex items-center justify-between">
+              <div class="flex items-center gap-2">
+                <div class="flex -space-x-1">
+                  <div class="w-5 h-5 rounded-full bg-gradient-to-br from-primary to-accent flex items-center justify-center text-white text-[7px] font-medium border border-white dark:border-dark-surface">李</div>
+                  <div class="w-5 h-5 rounded-full bg-gradient-to-br from-node-person to-node-person/60 flex items-center justify-center text-white text-[7px] font-medium border border-white dark:border-dark-surface">王</div>
+                </div>
+                <span class="text-[10px] text-deep-gray/40 dark:text-warm-gray/40">26 人参与</span>
+              </div>
+              <span class="text-[10px] text-deep-gray/40 dark:text-warm-gray/40">最新回复 1小时前</span>
+            </div>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- Load more -->
+      <div class="text-center mt-8">
+        <button class="inline-flex items-center gap-2 px-6 py-2.5 bg-white dark:bg-dark-surface border border-deep-gray/10 dark:border-dark-border text-sm font-medium rounded-xl hover:border-primary/30 transition-colors text-deep-gray/50 dark:text-warm-gray/50 hover:text-deep-gray dark:hover:text-warm-gray">
+          <i data-lucide="loader" class="w-4 h-4"></i>加载更多
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Right Panel -->
+  <div class="w-72 flex-shrink-0 bg-white dark:bg-dark-surface border-l border-deep-gray/8 dark:border-dark-border h-[calc(100vh-4rem)] sticky top-16 overflow-y-auto">
+    <div class="p-5">
+      <!-- Editor's Pick -->
+      <div class="mb-8">
+        <h3 class="text-sm font-semibold text-deep-gray dark:text-warm-gray mb-4">本周精选</h3>
+        <div class="space-y-3">
+          <div class="group cursor-pointer">
+            <div class="w-full h-24 rounded-xl bg-gradient-to-br from-primary/15 to-accent/15 mb-2 flex items-center justify-center group-hover:from-primary/20 group-hover:to-accent/20 transition-colors">
+              <i data-lucide="award" class="w-6 h-6 text-primary/30"></i>
+            </div>
+            <p class="text-xs font-semibold text-deep-gray dark:text-warm-gray group-hover:text-primary transition-colors">古城七门寻踪记</p>
+            <p class="text-[10px] text-deep-gray/40 dark:text-warm-gray/40 mt-0.5">张晓明 · 探索心得</p>
+          </div>
+          <div class="group cursor-pointer">
+            <div class="w-full h-24 rounded-xl bg-gradient-to-br from-node-sound/15 to-node-person/15 mb-2 flex items-center justify-center group-hover:from-node-sound/20 group-hover:to-node-person/20 transition-colors">
+              <i data-lucide="award" class="w-6 h-6 text-node-sound/30"></i>
+            </div>
+            <p class="text-xs font-semibold text-deep-gray dark:text-warm-gray group-hover:text-primary transition-colors">黄土高原的风声</p>
+            <p class="text-[10px] text-deep-gray/40 dark:text-warm-gray/40 mt-0.5">刘文静 · 声音碎片</p>
+          </div>
+          <div class="group cursor-pointer">
+            <div class="w-full h-24 rounded-xl bg-gradient-to-br from-node-folk/15 to-node-book/15 mb-2 flex items-center justify-center group-hover:from-node-folk/20 group-hover:to-node-book/20 transition-colors">
+              <i data-lucide="award" class="w-6 h-6 text-node-folk/30"></i>
+            </div>
+            <p class="text-xs font-semibold text-deep-gray dark:text-warm-gray group-hover:text-primary transition-colors">府志中的失落地名</p>
+            <p class="text-[10px] text-deep-gray/40 dark:text-warm-gray/40 mt-0.5">陈志远 · 古籍研究</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Active Creators -->
+      <div class="mb-8">
+        <h3 class="text-sm font-semibold text-deep-gray dark:text-warm-gray mb-4">活跃创作者</h3>
+        <div class="space-y-3">
+          <div class="flex items-center gap-3">
+            <span class="text-xs font-bold text-primary w-4">1</span>
+            <div class="w-7 h-7 rounded-full bg-gradient-to-br from-node-person to-node-person/60 flex items-center justify-center text-white text-[9px] font-medium">王</div>
+            <div class="flex-1 min-w-0">
+              <p class="text-xs font-medium text-deep-gray dark:text-warm-gray truncate">王雨萱</p>
+            </div>
+            <span class="text-[10px] text-accent font-medium">1,240</span>
+          </div>
+          <div class="flex items-center gap-3">
+            <span class="text-xs font-bold text-accent w-4">2</span>
+            <div class="w-7 h-7 rounded-full bg-gradient-to-br from-node-folk to-node-folk/60 flex items-center justify-center text-white text-[9px] font-medium">陈</div>
+            <div class="flex-1 min-w-0">
+              <p class="text-xs font-medium text-deep-gray dark:text-warm-gray truncate">陈志远</p>
+            </div>
+            <span class="text-[10px] text-accent font-medium">980</span>
+          </div>
+          <div class="flex items-center gap-3">
+            <span class="text-xs font-bold text-deep-gray/30 dark:text-warm-gray/30 w-4">3</span>
+            <div class="w-7 h-7 rounded-full bg-gradient-to-br from-primary to-accent flex items-center justify-center text-white text-[9px] font-medium">李</div>
+            <div class="flex-1 min-w-0">
+              <p class="text-xs font-medium text-deep-gray dark:text-warm-gray truncate">李明轩</p>
+            </div>
+            <span class="text-[10px] text-accent font-medium">856</span>
+          </div>
+          <div class="flex items-center gap-3">
+            <span class="text-xs font-bold text-deep-gray/30 dark:text-warm-gray/30 w-4">4</span>
+            <div class="w-7 h-7 rounded-full bg-gradient-to-br from-accent to-accent/60 flex items-center justify-center text-white text-[9px] font-medium">刘</div>
+            <div class="flex-1 min-w-0">
+              <p class="text-xs font-medium text-deep-gray dark:text-warm-gray truncate">刘文静</p>
+            </div>
+            <span class="text-[10px] text-accent font-medium">723</span>
+          </div>
+          <div class="flex items-center gap-3">
+            <span class="text-xs font-bold text-deep-gray/30 dark:text-warm-gray/30 w-4">5</span>
+            <div class="w-7 h-7 rounded-full bg-gradient-to-br from-node-folk to-node-folk/60 flex items-center justify-center text-white text-[9px] font-medium">张</div>
+            <div class="flex-1 min-w-0">
+              <p class="text-xs font-medium text-deep-gray dark:text-warm-gray truncate">张晓明</p>
+            </div>
+            <span class="text-[10px] text-accent font-medium">654</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Upcoming Activities -->
+      <div class="mb-8">
+        <h3 class="text-sm font-semibold text-deep-gray dark:text-warm-gray mb-4">共创活动</h3>
+        <div class="space-y-3">
+          <div class="p-3 rounded-xl border border-primary/10 bg-primary/4 dark:bg-primary/8">
+            <div class="flex items-center gap-2 mb-1.5">
+              <div class="w-2 h-2 bg-primary rounded-full animate-breathe"></div>
+              <span class="text-xs font-semibold text-deep-gray dark:text-warm-gray">古城声音采集日</span>
+            </div>
+            <p class="text-[10px] text-deep-gray/50 dark:text-warm-gray/50 mb-2">截止 8月25日 · 已报名 12人</p>
+            <button class="w-full py-1.5 bg-primary text-white text-[10px] font-medium rounded-lg hover:bg-primary-light transition-colors">快速报名</button>
+          </div>
+          <div class="p-3 rounded-xl border border-accent/10 bg-accent/4 dark:bg-accent/8">
+            <div class="flex items-center gap-2 mb-1.5">
+              <span class="text-xs font-semibold text-deep-gray dark:text-warm-gray">府志共读会·第三期</span>
+            </div>
+            <p class="text-[10px] text-deep-gray/50 dark:text-warm-gray/50 mb-2">截止 9月1日 · 已报名 8人</p>
+            <button class="w-full py-1.5 bg-accent text-white text-[10px] font-medium rounded-lg hover:bg-accent-light transition-colors">快速报名</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Announcements -->
+      <div>
+        <h3 class="text-sm font-semibold text-deep-gray dark:text-warm-gray mb-4">公告</h3>
+        <div class="space-y-2">
+          <div class="flex items-start gap-2 p-2 rounded-lg hover:bg-warm-gray/50 dark:hover:bg-dark-border/50 cursor-pointer transition-colors">
+            <i data-lucide="megaphone" class="w-3.5 h-3.5 text-primary mt-0.5 flex-shrink-0"></i>
+            <div>
+              <p class="text-xs text-deep-gray/70 dark:text-warm-gray/70">UXPA 2026 参赛作品提交截止提醒</p>
+              <p class="text-[10px] text-deep-gray/40 dark:text-warm-gray/40 mt-0.5">3天前</p>
+            </div>
+          </div>
+          <div class="flex items-start gap-2 p-2 rounded-lg hover:bg-warm-gray/50 dark:hover:bg-dark-border/50 cursor-pointer transition-colors">
+            <i data-lucide="info" class="w-3.5 h-3.5 text-node-person mt-0.5 flex-shrink-0"></i>
+            <div>
+              <p class="text-xs text-deep-gray/70 dark:text-warm-gray/70">醒城 v2.1 更新：新增古籍对照阅读</p>
+              <p class="text-[10px] text-deep-gray/40 dark:text-warm-gray/40 mt-0.5">1周前</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</main>
+
+<!-- Dark Mode Script -->
+<script>
+  const toggle = document.getElementById('themeToggle');
+  toggle.addEventListener('click', () => {
+    document.body.classList.toggle('dark');
+  });
+</script>
+</body>
+<script>if (window.lucide) lucide.createIcons();</script>
+</html>
