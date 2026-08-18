@@ -1,0 +1,501 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="preconnect" href="https://unpkg.com" />
+  <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+  <script src="https://unpkg.com/@fortawesome/fontawesome-free@6.7.2/js/all.min.js"></script>
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <style>
+    * {
+      scrollbar-width: none;
+      scrollbar-color: rgba(0, 0, 0, 0.2) transparent;
+    }
+  </style>
+</head>
+
+<body class="bg-warm-bg text-deep-gray font-body antialiased dark:bg-dark-bg dark:text-warm-gray transition-colors duration-300">
+
+<link rel="stylesheet" href="https://fonts.googleapis.cn/css2?family=Noto+Sans+SC:wght@300;400;500;600;700&family=Noto+Serif+SC:wght@400;600;700&family=DM+Sans:wght@400;500;600;700&display=swap" />
+
+<style type="text/tailwindcss">
+  @theme {
+    --color-primary: #C45C3E;
+    --color-primary-light: #D4725A;
+    --color-accent: #D4A574;
+    --color-accent-light: #E8C9A0;
+    --color-sandstone: #B85450;
+    --color-deep-gray: #2D2D2D;
+    --color-warm-gray: #F5F0EB;
+    --color-warm-bg: #FAF8F5;
+    --color-dark-bg: #1A1A1A;
+    --color-dark-surface: #252525;
+    --color-dark-border: #3A3A3A;
+    --color-node-city: #C45C3E;
+    --color-node-person: #5B8DB8;
+    --color-node-sound: #9B7EC8;
+    --color-node-book: #D4A574;
+    --color-node-folk: #6B9B8A;
+    --font-body: 'DM Sans', 'Noto Sans SC', 'PingFang SC', 'Microsoft YaHei', sans-serif;
+    --font-display: 'Noto Serif SC', 'PingFang SC', serif;
+  }
+
+  @keyframes breathe {
+    0%, 100% { opacity: 0.4; transform: scale(1); }
+    50% { opacity: 1; transform: scale(1.1); }
+  }
+  @keyframes slideIn {
+    from { opacity: 0; transform: translateY(8px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+  .animate-breathe { animation: breathe 3s ease-in-out infinite; }
+  .animate-slide-in { animation: slideIn 0.4s ease-out forwards; }
+
+  .nav-item {
+    @apply flex items-center gap-3 px-4 py-2.5 rounded-lg text-sm font-medium transition-all duration-200 cursor-pointer;
+  }
+  .nav-item:hover { @apply bg-primary/10 text-primary; }
+  .nav-item.active { @apply bg-primary/12 text-primary font-semibold; }
+  .dark .nav-item:hover { @apply bg-primary/20; }
+  .dark .nav-item.active { @apply bg-primary/25; }
+
+  .toc-item {
+    @apply px-3 py-2 rounded-lg text-sm cursor-pointer transition-all duration-200;
+  }
+  .toc-item:hover { @apply bg-primary/8 text-primary; }
+  .toc-item.active { @apply bg-primary/10 text-primary font-semibold; }
+
+  .annotation-highlight {
+    @apply bg-accent/15 border-b-2 border-accent/40;
+  }
+  .entity-link {
+    @apply border-b border-dashed border-primary/40 text-primary cursor-pointer hover:border-primary hover:bg-primary/5 transition-colors;
+  }
+  .classical-text {
+    font-family: 'Noto Serif SC', serif;
+    line-height: 2;
+    letter-spacing: 0.05em;
+  }
+  .section-divider {
+    @apply flex items-center justify-center gap-4 py-4;
+  }
+  .section-divider::before,
+  .section-divider::after {
+    content: '';
+    @apply flex-1 h-px bg-deep-gray/10 dark:bg-warm-gray/10;
+  }
+</style>
+
+<!-- Top Bar -->
+<header class="fixed top-0 left-0 right-0 h-16 bg-white/80 dark:bg-dark-surface/90 backdrop-blur-md border-b border-deep-gray/8 dark:border-dark-border z-50 flex items-center px-6">
+  <div class="flex items-center gap-2 w-60">
+    <div class="w-8 h-8 bg-primary rounded-lg flex items-center justify-center">
+      <span class="text-white font-bold text-sm font-[--font-display]">醒</span>
+    </div>
+    <span class="text-lg font-semibold font-[--font-display] text-deep-gray dark:text-warm-gray">醒城</span>
+  </div>
+  <div class="flex-1 max-w-xl mx-auto">
+    <div class="relative">
+      <i data-lucide="search" class="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-deep-gray/40 dark:text-warm-gray/40"></i>
+      <input type="text" placeholder="全文检索：输入关键词..." class="w-full h-10 pl-10 pr-4 bg-warm-gray/60 dark:bg-dark-border/60 rounded-xl border-none text-sm text-deep-gray dark:text-warm-gray placeholder:text-deep-gray/40 dark:placeholder:text-warm-gray/40 focus:outline-none focus:ring-2 focus:ring-primary/30" />
+    </div>
+  </div>
+  <div class="flex items-center gap-4 w-60 justify-end">
+    <button id="themeToggle" class="w-9 h-9 rounded-lg flex items-center justify-center hover:bg-warm-gray dark:hover:bg-dark-border transition-colors">
+      <i data-lucide="sun" class="w-4.5 h-4.5 text-deep-gray/60 dark:text-warm-gray/60 dark:hidden"></i>
+      <i data-lucide="moon" class="w-4.5 h-4.5 text-warm-gray/60 hidden dark:block"></i>
+    </button>
+    <button class="w-9 h-9 rounded-lg flex items-center justify-center hover:bg-warm-gray dark:hover:bg-dark-border transition-colors relative">
+      <i data-lucide="bell" class="w-4.5 h-4.5 text-deep-gray/60 dark:text-warm-gray/60"></i>
+      <span class="absolute top-1.5 right-1.5 w-2 h-2 bg-primary rounded-full"></span>
+    </button>
+    <div class="w-8 h-8 rounded-full bg-gradient-to-br from-primary to-accent flex items-center justify-center text-white text-xs font-semibold">李</div>
+  </div>
+</header>
+
+<!-- Left Sidebar (Nav) -->
+<aside class="fixed top-16 left-0 w-60 h-[calc(100vh-4rem)] bg-white dark:bg-dark-surface border-r border-deep-gray/8 dark:border-dark-border py-6 px-3 overflow-y-auto z-40">
+  <nav class="space-y-1">
+    <a href="#home" class="nav-item" data-page="home"><i data-lucide="layout-dashboard" class="w-4.5 h-4.5"></i><span>首页</span></a>
+    <a href="#explore" class="nav-item" data-page="explore"><i data-lucide="map-pin" class="w-4.5 h-4.5"></i><span>游城</span></a>
+    <a href="#books" class="nav-item" data-page="books"><i data-lucide="book-open" class="w-4.5 h-4.5"></i><span>寻书</span></a>
+    <a href="#create" class="nav-item" data-page="create"><i data-lucide="pen-tool" class="w-4.5 h-4.5"></i><span>共创</span></a>
+    <a href="#graph" class="nav-item" data-page="graph"><i data-lucide="git-branch" class="w-4.5 h-4.5"></i><span>知识图谱</span></a>
+    <a href="#studio" class="nav-item" data-page="studio"><i data-lucide="layers" class="w-4.5 h-4.5"></i><span>叙事工作室</span></a>
+    <a href="#data" class="nav-item" data-page="data"><i data-lucide="bar-chart-3" class="w-4.5 h-4.5"></i><span>数据看板</span></a>
+    <a href="#ancient" class="nav-item active" data-page="ancient"><i data-lucide="scroll" class="w-4.5 h-4.5"></i><span>古籍阅读</span></a>
+    <a href="#community" class="nav-item" data-page="community"><i data-lucide="users" class="w-4.5 h-4.5"></i><span>社区论坛</span></a>
+  </nav>
+  <div class="mt-auto pt-6 border-t border-deep-gray/8 dark:border-dark-border mt-8">
+    <a href="#settings" class="nav-item" data-page="settings"><i data-lucide="settings" class="w-4.5 h-4.5"></i><span>设置</span></a>
+  </div>
+</aside>
+
+<!-- Main Layout: TOC + Reader + Annotations -->
+<main class="ml-60 pt-16 min-h-screen flex">
+
+  <!-- TOC Panel (collapsible) -->
+  <div class="w-64 flex-shrink-0 bg-white dark:bg-dark-surface border-r border-deep-gray/8 dark:border-dark-border h-[calc(100vh-4rem)] sticky top-16 overflow-y-auto">
+    <div class="p-5">
+      <!-- Book info -->
+      <div class="mb-5">
+        <h3 class="text-sm font-semibold font-[--font-display] text-deep-gray dark:text-warm-gray">《榆林府志》</h3>
+        <p class="text-xs text-deep-gray/40 dark:text-warm-gray/40 mt-1">清 · 谭吉璁 纂修</p>
+      </div>
+
+      <!-- TOC Tree -->
+      <div class="mb-6">
+        <h4 class="text-xs font-semibold text-deep-gray/50 dark:text-warm-gray/50 uppercase tracking-wide mb-3">目录</h4>
+        <div class="space-y-0.5">
+          <div class="toc-item active pl-3 flex items-center gap-2">
+            <i data-lucide="chevron-down" class="w-3 h-3 text-primary"></i>
+            <span>卷一 地理志</span>
+          </div>
+          <div class="pl-9 space-y-0.5">
+            <div class="toc-item text-xs text-primary font-medium">沿革</div>
+            <div class="toc-item text-xs text-deep-gray/60 dark:text-warm-gray/60">疆域</div>
+            <div class="toc-item text-xs text-deep-gray/60 dark:text-warm-gray/60">山川</div>
+            <div class="toc-item text-xs text-deep-gray/60 dark:text-warm-gray/60">城池</div>
+            <div class="toc-item text-xs text-deep-gray/60 dark:text-warm-gray/60">关隘</div>
+          </div>
+          <div class="toc-item pl-3 flex items-center gap-2 text-deep-gray/60 dark:text-warm-gray/60">
+            <i data-lucide="chevron-right" class="w-3 h-3"></i>
+            <span>卷二 建置志</span>
+          </div>
+          <div class="toc-item pl-3 flex items-center gap-2 text-deep-gray/60 dark:text-warm-gray/60">
+            <i data-lucide="chevron-right" class="w-3 h-3"></i>
+            <span>卷三 食货志</span>
+          </div>
+          <div class="toc-item pl-3 flex items-center gap-2 text-deep-gray/60 dark:text-warm-gray/60">
+            <i data-lucide="chevron-right" class="w-3 h-3"></i>
+            <span>卷四 学校志</span>
+          </div>
+          <div class="toc-item pl-3 flex items-center gap-2 text-deep-gray/60 dark:text-warm-gray/60">
+            <i data-lucide="chevron-right" class="w-3 h-3"></i>
+            <span>卷五 兵防志</span>
+          </div>
+          <div class="toc-item pl-3 flex items-center gap-2 text-deep-gray/60 dark:text-warm-gray/60">
+            <i data-lucide="chevron-right" class="w-3 h-3"></i>
+            <span>卷六 职官志</span>
+          </div>
+          <div class="toc-item pl-3 flex items-center gap-2 text-deep-gray/60 dark:text-warm-gray/60">
+            <i data-lucide="chevron-right" class="w-3 h-3"></i>
+            <span>卷七 人物志</span>
+          </div>
+          <div class="toc-item pl-3 flex items-center gap-2 text-deep-gray/60 dark:text-warm-gray/60">
+            <i data-lucide="chevron-right" class="w-3 h-3"></i>
+            <span>卷八 艺文志</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Related Nodes -->
+      <div>
+        <h4 class="text-xs font-semibold text-deep-gray/50 dark:text-warm-gray/50 uppercase tracking-wide mb-3">关联节点</h4>
+        <div class="space-y-2">
+          <div class="flex items-center gap-2 p-2 rounded-lg hover:bg-primary/5 cursor-pointer transition-colors">
+            <div class="w-6 h-6 rounded-full bg-node-city/12 flex items-center justify-center">
+              <i data-lucide="map-pin" class="w-3 h-3 text-node-city"></i>
+            </div>
+            <span class="text-xs text-deep-gray/70 dark:text-warm-gray/70">凯歌楼</span>
+          </div>
+          <div class="flex items-center gap-2 p-2 rounded-lg hover:bg-primary/5 cursor-pointer transition-colors">
+            <div class="w-6 h-6 rounded-full bg-node-city/12 flex items-center justify-center">
+              <i data-lucide="map-pin" class="w-3 h-3 text-node-city"></i>
+            </div>
+            <span class="text-xs text-deep-gray/70 dark:text-warm-gray/70">镇北台</span>
+          </div>
+          <div class="flex items-center gap-2 p-2 rounded-lg hover:bg-primary/5 cursor-pointer transition-colors">
+            <div class="w-6 h-6 rounded-full bg-node-city/12 flex items-center justify-center">
+              <i data-lucide="map-pin" class="w-3 h-3 text-node-city"></i>
+            </div>
+            <span class="text-xs text-deep-gray/70 dark:text-warm-gray/70">红石峡</span>
+          </div>
+          <div class="flex items-center gap-2 p-2 rounded-lg hover:bg-primary/5 cursor-pointer transition-colors">
+            <div class="w-6 h-6 rounded-full bg-node-person/12 flex items-center justify-center">
+              <i data-lucide="user" class="w-3 h-3 text-node-person"></i>
+            </div>
+            <span class="text-xs text-deep-gray/70 dark:text-warm-gray/70">谭吉璁</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Reading Area -->
+  <div class="flex-1 min-w-0">
+    <!-- Sub-header: Title + Controls -->
+    <div class="sticky top-16 z-30 bg-warm-bg/95 dark:bg-dark-bg/95 backdrop-blur-sm border-b border-deep-gray/6 dark:border-dark-border px-8 py-3">
+      <div class="flex items-center justify-between">
+        <div class="flex items-center gap-3">
+          <h2 class="text-base font-semibold font-[--font-display] text-deep-gray dark:text-warm-gray">《榆林府志》· 卷一 地理志</h2>
+          <span class="text-xs px-2 py-0.5 bg-primary/10 text-primary rounded-full">沿革</span>
+        </div>
+        <div class="flex items-center gap-2">
+          <!-- Reading Mode -->
+          <div class="flex bg-warm-gray dark:bg-dark-border rounded-lg p-0.5">
+            <button class="px-3 py-1.5 text-xs font-medium rounded-md text-deep-gray/50 dark:text-warm-gray/50 hover:text-deep-gray dark:hover:text-warm-gray transition-colors">原文</button>
+            <button class="px-3 py-1.5 text-xs font-medium rounded-md text-deep-gray/50 dark:text-warm-gray/50 hover:text-deep-gray dark:hover:text-warm-gray transition-colors">白话</button>
+            <button class="px-3 py-1.5 text-xs font-medium rounded-md bg-white dark:bg-dark-surface text-deep-gray dark:text-warm-gray shadow-sm">对照</button>
+          </div>
+          <!-- Font Size -->
+          <div class="flex items-center gap-1 bg-warm-gray dark:bg-dark-border rounded-lg px-2 py-1">
+            <button class="w-6 h-6 flex items-center justify-center text-deep-gray/50 dark:text-warm-gray/50 hover:text-deep-gray dark:hover:text-warm-gray transition-colors">
+              <span class="text-xs font-bold">A-</span>
+            </button>
+            <div class="w-px h-4 bg-deep-gray/10 dark:bg-warm-gray/10"></div>
+            <button class="w-6 h-6 flex items-center justify-center text-deep-gray/50 dark:text-warm-gray/50 hover:text-deep-gray dark:hover:text-warm-gray transition-colors">
+              <span class="text-sm font-bold">A+</span>
+            </button>
+          </div>
+          <!-- Bookmark -->
+          <button class="w-9 h-9 rounded-lg flex items-center justify-center hover:bg-warm-gray dark:hover:bg-dark-border transition-colors">
+            <i data-lucide="bookmark" class="w-4.5 h-4.5 text-deep-gray/50 dark:text-warm-gray/50"></i>
+          </button>
+          <!-- Annotations list -->
+          <button class="w-9 h-9 rounded-lg flex items-center justify-center hover:bg-warm-gray dark:hover:bg-dark-border transition-colors relative">
+            <i data-lucide="message-square" class="w-4.5 h-4.5 text-deep-gray/50 dark:text-warm-gray/50"></i>
+            <span class="absolute -top-0.5 -right-0.5 text-[9px] bg-primary text-white w-4 h-4 rounded-full flex items-center justify-center">6</span>
+          </button>
+        </div>
+      </div>
+      <!-- Progress bar -->
+      <div class="mt-2 w-full h-1 bg-warm-gray dark:bg-dark-border rounded-full overflow-hidden">
+        <div class="h-full bg-gradient-to-r from-primary to-accent rounded-full transition-all duration-500" style="width: 35%"></div>
+      </div>
+    </div>
+
+    <!-- Reading content: Parallel view -->
+    <div class="p-8">
+      <div class="grid grid-cols-2 gap-8">
+        <!-- Original Text -->
+        <div>
+          <div class="flex items-center gap-2 mb-5">
+            <div class="w-1.5 h-5 bg-primary rounded-full"></div>
+            <span class="text-xs font-semibold text-deep-gray/50 dark:text-warm-gray/50 uppercase tracking-wide">原文</span>
+          </div>
+          <div class="classical-text text-base text-deep-gray dark:text-warm-gray leading-[2.2]">
+            <p class="mb-6">
+              <span class="text-lg font-semibold font-[--font-display] text-primary">榆林</span>，古雍州之域。虞夏之际，为西戎所居。殷末，戎狄间畜牧于此。周初，<span class="entity-link">猃狁</span>据之。春秋时属<span class="entity-link">白翟</span>。战国属魏上郡地。
+            </p>
+            <p class="mb-6">
+              秦并天下，置<span class="entity-link">上郡</span>，治<span class="entity-link">肤施</span>。汉因之，领县二十三。后汉省并，领县十。晋末陷于<span class="entity-link">赫连氏</span>，筑<span class="entity-link annotation-highlight">统万城</span>以都之。
+            </p>
+
+            <div class="section-divider">
+              <span class="text-xs text-deep-gray/20 dark:text-warm-gray/20">◆</span>
+            </div>
+
+            <p class="mb-6">
+              北魏平统万，置<span class="entity-link">夏州</span>。西魏置<span class="entity-link">绥州</span>及<span class="entity-link">银州</span>。隋开皇初废郡，以州统县。大业中，改州为郡。唐武德初复改郡为州。
+            </p>
+            <p class="mb-6">
+              宋初，党项<span class="entity-link">拓跋氏</span>据有其地。元丰五年，种谔筑<span class="entity-link annotation-highlight">榆林城</span>，始有今名。金因宋旧。元置<span class="entity-link">绥德州</span>，属延安路。
+            </p>
+
+            <div class="section-divider">
+              <span class="text-xs text-deep-gray/20 dark:text-warm-gray/20">◆</span>
+            </div>
+
+            <p>
+              明洪武二年，置<span class="entity-link">榆林卫</span>。正统中，巡抚都御史移镇榆林。成化七年，始筑<span class="entity-link annotation-highlight">榆林城</span>，周围九里有奇。嘉靖间增筑南关外城。城垣高三丈六尺，厚基二丈五尺。设门四：东曰<span class="entity-link">振武</span>，西曰<span class="entity-link">宣威</span>，南曰<span class="entity-link">镇远</span>，北曰<span class="entity-link">广榆</span>。
+            </p>
+          </div>
+        </div>
+
+        <!-- Translation -->
+        <div>
+          <div class="flex items-center gap-2 mb-5">
+            <div class="w-1.5 h-5 bg-accent rounded-full"></div>
+            <span class="text-xs font-semibold text-deep-gray/50 dark:text-warm-gray/50 uppercase tracking-wide">白话译文</span>
+            <span class="text-[10px] px-1.5 py-0.5 bg-node-sound/10 text-node-sound rounded ml-1">AI 辅助</span>
+          </div>
+          <div class="text-sm text-deep-gray/75 dark:text-warm-gray/75 leading-[2]">
+            <p class="mb-6">
+              <span class="font-semibold text-deep-gray dark:text-warm-gray">榆林</span>这片土地，在远古时代属于雍州的范围。在虞舜和夏朝的时候，是西方的戎族居住的地方。商朝末年，戎族和狄族在这里放牧生活。西周初年，北方的猃狁部族占据了这里。春秋时期属于白翟的地盘。到了战国时期，归属魏国的上郡管辖。
+            </p>
+            <p class="mb-6">
+              秦统一天下后，设立了<span class="font-medium text-deep-gray dark:text-warm-gray">上郡</span>，郡治设在肤施。汉朝沿袭秦制，辖有二十三个县。东汉时期有所合并，管辖十个县。西晋末年被赫连勃勃占领，他修筑了<span class="font-medium text-deep-gray dark:text-warm-gray annotation-highlight">统万城</span>作为都城。
+            </p>
+
+            <div class="section-divider">
+              <span class="text-xs text-deep-gray/20 dark:text-warm-gray/20">◆</span>
+            </div>
+
+            <p class="mb-6">
+              北魏攻克统万城后，设置了<span class="font-medium text-deep-gray dark:text-warm-gray">夏州</span>。西魏时期又增设了绥州和银州。隋朝开皇初年废除郡制，改用州来管辖县。大业年间又改州为郡。唐朝武德初年再次改郡为州。
+            </p>
+            <p class="mb-6">
+              北宋初年，党项族的拓跋氏占据了这片土地。元丰五年（1082年），宋将种谔修筑了<span class="font-medium text-deep-gray dark:text-warm-gray annotation-highlight">榆林城</span>，"榆林"之名由此开始。金朝沿袭宋朝旧制。元朝设绥德州，归属延安路管辖。
+            </p>
+
+            <div class="section-divider">
+              <span class="text-xs text-deep-gray/20 dark:text-warm-gray/20">◆</span>
+            </div>
+
+            <p>
+              明朝洪武二年（1369年），设立<span class="font-medium text-deep-gray dark:text-warm-gray">榆林卫</span>。正统年间，巡抚都御史将驻地迁到榆林。成化七年（1471年），开始修筑<span class="font-medium text-deep-gray dark:text-warm-gray annotation-highlight">榆林城</span>，城墙周长九里多。嘉靖年间又在南关外增筑了外城。城墙高三丈六尺，底部厚二丈五尺。设有四座城门：东门叫振武门，西门叫宣威门，南门叫镇远门，北门叫广榆门。
+            </p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Floating selection toolbar (static demo) -->
+      <div class="mt-6 flex justify-center">
+        <div class="inline-flex items-center gap-1 bg-deep-gray dark:bg-warm-gray rounded-xl px-2 py-1.5 shadow-xl">
+          <button class="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs text-white dark:text-deep-gray hover:bg-white/10 dark:hover:bg-deep-gray/10 transition-colors">
+            <i data-lucide="message-square-plus" class="w-3.5 h-3.5"></i>批注
+          </button>
+          <button class="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs text-white dark:text-deep-gray hover:bg-white/10 dark:hover:bg-deep-gray/10 transition-colors">
+            <i data-lucide="copy" class="w-3.5 h-3.5"></i>复制
+          </button>
+          <button class="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs text-white dark:text-deep-gray hover:bg-white/10 dark:hover:bg-deep-gray/10 transition-colors">
+            <i data-lucide="share-2" class="w-3.5 h-3.5"></i>分享
+          </button>
+          <button class="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs text-white dark:text-deep-gray hover:bg-white/10 dark:hover:bg-deep-gray/10 transition-colors">
+            <i data-lucide="search" class="w-3.5 h-3.5"></i>搜索
+          </button>
+          <button class="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs text-white dark:text-deep-gray hover:bg-white/10 dark:hover:bg-deep-gray/10 transition-colors">
+            <i data-lucide="link" class="w-3.5 h-3.5"></i>关联节点
+          </button>
+        </div>
+      </div>
+
+      <!-- Bottom Navigation -->
+      <div class="flex items-center justify-between mt-8 pt-6 border-t border-deep-gray/8 dark:border-dark-border">
+        <button class="flex items-center gap-2 text-sm text-deep-gray/50 dark:text-warm-gray/50 hover:text-primary transition-colors">
+          <i data-lucide="chevron-left" class="w-4 h-4"></i>
+          上一章：序
+        </button>
+        <div class="flex items-center gap-3">
+          <span class="text-xs text-deep-gray/40 dark:text-warm-gray/40">阅读进度 35%</span>
+          <select class="text-xs bg-warm-gray dark:bg-dark-border text-deep-gray dark:text-warm-gray px-3 py-1.5 rounded-lg border-none focus:outline-none focus:ring-2 focus:ring-primary/30">
+            <option>跳转到...</option>
+            <option>卷一 地理志</option>
+            <option>卷二 建置志</option>
+            <option>卷三 食货志</option>
+            <option>卷四 学校志</option>
+          </select>
+        </div>
+        <button class="flex items-center gap-2 text-sm text-deep-gray/50 dark:text-warm-gray/50 hover:text-primary transition-colors">
+          下一章：疆域
+          <i data-lucide="chevron-right" class="w-4 h-4"></i>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Right: Annotations Panel -->
+  <div class="w-72 flex-shrink-0 bg-white dark:bg-dark-surface border-l border-deep-gray/8 dark:border-dark-border h-[calc(100vh-4rem)] sticky top-16 overflow-y-auto">
+    <div class="p-5">
+      <div class="flex items-center justify-between mb-5">
+        <h3 class="text-sm font-semibold text-deep-gray dark:text-warm-gray">批注</h3>
+        <span class="text-xs text-deep-gray/40 dark:text-warm-gray/40">6 条</span>
+      </div>
+
+      <!-- Filter tabs -->
+      <div class="flex gap-1 mb-5 bg-warm-gray/60 dark:bg-dark-border/60 p-0.5 rounded-lg">
+        <button class="flex-1 py-1.5 text-[11px] font-medium rounded-md bg-white dark:bg-dark-surface text-deep-gray dark:text-warm-gray shadow-sm text-center">全部</button>
+        <button class="flex-1 py-1.5 text-[11px] font-medium rounded-md text-deep-gray/50 dark:text-warm-gray/50 text-center">我的</button>
+        <button class="flex-1 py-1.5 text-[11px] font-medium rounded-md text-deep-gray/50 dark:text-warm-gray/50 text-center">公开</button>
+        <button class="flex-1 py-1.5 text-[11px] font-medium rounded-md text-deep-gray/50 dark:text-warm-gray/50 text-center">专家</button>
+      </div>
+
+      <!-- Annotation list -->
+      <div class="space-y-4">
+        <!-- Annotation 1 -->
+        <div class="p-3 rounded-xl border border-deep-gray/6 dark:border-dark-border hover:border-primary/20 transition-colors cursor-pointer group">
+          <div class="flex items-center gap-2 mb-2">
+            <div class="w-5 h-5 rounded-full bg-gradient-to-br from-node-person to-node-person/60 flex items-center justify-center text-white text-[9px] font-medium">陈</div>
+            <span class="text-xs font-medium text-deep-gray dark:text-warm-gray">陈志远</span>
+            <span class="text-[10px] px-1.5 py-0.5 bg-accent/10 text-accent rounded font-medium ml-auto">专家</span>
+          </div>
+          <p class="text-xs text-deep-gray/60 dark:text-warm-gray/60 bg-accent/8 dark:bg-accent/12 px-2 py-1 rounded mb-2 line-clamp-2 italic">"筑统万城以都之"</p>
+          <p class="text-xs text-deep-gray/70 dark:text-warm-gray/70 leading-relaxed">统万城遗址位于今靖边县白城则村，是匈奴族在历史上留下的唯一一座都城遗址，2012年列入世界文化遗产预备名录。</p>
+          <div class="flex items-center gap-3 mt-2 text-[10px] text-deep-gray/40 dark:text-warm-gray/40">
+            <span class="flex items-center gap-1"><i data-lucide="thumbs-up" class="w-3 h-3"></i>12</span>
+            <span class="flex items-center gap-1"><i data-lucide="message-circle" class="w-3 h-3"></i>3</span>
+          </div>
+        </div>
+
+        <!-- Annotation 2 -->
+        <div class="p-3 rounded-xl border border-deep-gray/6 dark:border-dark-border hover:border-primary/20 transition-colors cursor-pointer">
+          <div class="flex items-center gap-2 mb-2">
+            <div class="w-5 h-5 rounded-full bg-gradient-to-br from-primary to-accent flex items-center justify-center text-white text-[9px] font-medium">李</div>
+            <span class="text-xs font-medium text-deep-gray dark:text-warm-gray">李明轩（我）</span>
+            <span class="text-[10px] px-1.5 py-0.5 bg-node-folk/10 text-node-folk rounded font-medium ml-auto">私密</span>
+          </div>
+          <p class="text-xs text-deep-gray/60 dark:text-warm-gray/60 bg-accent/8 dark:bg-accent/12 px-2 py-1 rounded mb-2 line-clamp-2 italic">"始筑榆林城，始有今名"</p>
+          <p class="text-xs text-deep-gray/70 dark:text-warm-gray/70 leading-relaxed">宋代种谔筑城是榆林城市史的起点，需要和镇北台的历史做关联研究。下次去实地拍照。</p>
+          <div class="flex items-center gap-3 mt-2 text-[10px] text-deep-gray/40 dark:text-warm-gray/40">
+            <span class="flex items-center gap-1"><i data-lucide="thumbs-up" class="w-3 h-3"></i>0</span>
+            <span class="flex items-center gap-1"><i data-lucide="message-circle" class="w-3 h-3"></i>0</span>
+          </div>
+        </div>
+
+        <!-- Annotation 3 -->
+        <div class="p-3 rounded-xl border border-deep-gray/6 dark:border-dark-border hover:border-primary/20 transition-colors cursor-pointer">
+          <div class="flex items-center gap-2 mb-2">
+            <div class="w-5 h-5 rounded-full bg-gradient-to-br from-accent to-accent-light flex items-center justify-center text-white text-[9px] font-medium">王</div>
+            <span class="text-xs font-medium text-deep-gray dark:text-warm-gray">王雨萱</span>
+            <span class="text-[10px] px-1.5 py-0.5 bg-node-person/10 text-node-person rounded font-medium ml-auto">公开</span>
+          </div>
+          <p class="text-xs text-deep-gray/60 dark:text-warm-gray/60 bg-accent/8 dark:bg-accent/12 px-2 py-1 rounded mb-2 line-clamp-2 italic">"东曰振武，西曰宣威"</p>
+          <p class="text-xs text-deep-gray/70 dark:text-warm-gray/70 leading-relaxed">四座城门中，现在只有南门镇远门还有遗迹可寻。东门振武门的位置大约在今天的东城门口。</p>
+          <div class="flex items-center gap-3 mt-2 text-[10px] text-deep-gray/40 dark:text-warm-gray/40">
+            <span class="flex items-center gap-1"><i data-lucide="thumbs-up" class="w-3 h-3"></i>8</span>
+            <span class="flex items-center gap-1"><i data-lucide="message-circle" class="w-3 h-3"></i>2</span>
+          </div>
+        </div>
+
+        <!-- Annotation 4 -->
+        <div class="p-3 rounded-xl border border-deep-gray/6 dark:border-dark-border hover:border-primary/20 transition-colors cursor-pointer">
+          <div class="flex items-center gap-2 mb-2">
+            <div class="w-5 h-5 rounded-full bg-gradient-to-br from-node-folk to-node-folk/60 flex items-center justify-center text-white text-[9px] font-medium">张</div>
+            <span class="text-xs font-medium text-deep-gray dark:text-warm-gray">张晓明</span>
+            <span class="text-[10px] px-1.5 py-0.5 bg-node-person/10 text-node-person rounded font-medium ml-auto">公开</span>
+          </div>
+          <p class="text-xs text-deep-gray/60 dark:text-warm-gray/60 bg-accent/8 dark:bg-accent/12 px-2 py-1 rounded mb-2 line-clamp-2 italic">"城垣高三丈六尺"</p>
+          <p class="text-xs text-deep-gray/70 dark:text-warm-gray/70 leading-relaxed">换算成现代单位约11.5米高。目前古城墙残存段落的实测高度在8-10米之间，与记载基本吻合。</p>
+          <div class="flex items-center gap-3 mt-2 text-[10px] text-deep-gray/40 dark:text-warm-gray/40">
+            <span class="flex items-center gap-1"><i data-lucide="thumbs-up" class="w-3 h-3"></i>15</span>
+            <span class="flex items-center gap-1"><i data-lucide="message-circle" class="w-3 h-3"></i>4</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Add annotation -->
+      <div class="mt-5 pt-5 border-t border-deep-gray/8 dark:border-dark-border">
+        <div class="flex items-center justify-between mb-3">
+          <span class="text-xs font-semibold text-deep-gray/50 dark:text-warm-gray/50">添加批注</span>
+          <div class="flex bg-warm-gray dark:bg-dark-border rounded-md p-0.5">
+            <button class="px-2 py-1 text-[10px] font-medium rounded bg-white dark:bg-dark-surface text-deep-gray dark:text-warm-gray shadow-sm">公开</button>
+            <button class="px-2 py-1 text-[10px] font-medium rounded text-deep-gray/40 dark:text-warm-gray/40">私密</button>
+          </div>
+        </div>
+        <textarea placeholder="写下你的批注..." class="w-full h-20 p-3 bg-warm-gray/40 dark:bg-dark-border/40 rounded-xl border border-deep-gray/6 dark:border-dark-border text-xs text-deep-gray dark:text-warm-gray placeholder:text-deep-gray/30 dark:placeholder:text-warm-gray/30 focus:outline-none focus:ring-2 focus:ring-primary/30 resize-none"></textarea>
+        <button class="mt-2 w-full py-2 bg-primary text-white text-xs font-medium rounded-lg hover:bg-primary-light transition-colors">发布批注</button>
+      </div>
+
+      <!-- AI disclaimer -->
+      <div class="mt-5 p-3 bg-node-sound/6 dark:bg-node-sound/12 rounded-xl border border-node-sound/10">
+        <div class="flex items-start gap-2">
+          <i data-lucide="bot" class="w-3.5 h-3.5 text-node-sound mt-0.5 flex-shrink-0"></i>
+          <p class="text-[11px] text-deep-gray/50 dark:text-warm-gray/50 leading-relaxed">AI 白话对照译文仅供参考，如发现错误欢迎提交勘误。</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</main>
+
+<!-- Dark Mode Script -->
+<script>
+  const toggle = document.getElementById('themeToggle');
+  toggle.addEventListener('click', () => {
+    document.body.classList.toggle('dark');
+  });
+</script>
+</body>
+<script>if (window.lucide) lucide.createIcons();</script>
+</html>
