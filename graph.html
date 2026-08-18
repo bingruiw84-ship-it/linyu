@@ -1,0 +1,529 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="preconnect" href="https://unpkg.com" />
+  <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+  <script src="https://unpkg.com/@fortawesome/fontawesome-free@6.7.2/js/all.min.js"></script>
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <style>
+    * {
+      scrollbar-width: none;
+      scrollbar-color: rgba(0, 0, 0, 0.2) transparent;
+    }
+  </style>
+</head>
+
+<body class="bg-warm-bg text-deep-gray font-body antialiased dark:bg-dark-bg dark:text-warm-gray transition-colors duration-300">
+
+<link rel="stylesheet" href="https://fonts.googleapis.cn/css2?family=Noto+Sans+SC:wght@300;400;500;600;700&family=Noto+Serif+SC:wght@400;600;700&family=DM+Sans:wght@400;500;600;700&display=swap" />
+
+<style type="text/tailwindcss">
+  @theme {
+    --color-primary: #C45C3E;
+    --color-primary-light: #D4725A;
+    --color-accent: #D4A574;
+    --color-accent-light: #E8C9A0;
+    --color-sandstone: #B85450;
+    --color-deep-gray: #2D2D2D;
+    --color-warm-gray: #F5F0EB;
+    --color-warm-bg: #FAF8F5;
+    --color-dark-bg: #1A1A1A;
+    --color-dark-surface: #252525;
+    --color-dark-border: #3A3A3A;
+    --color-node-person: #5B8DB8;
+    --color-node-place: #C45C3E;
+    --color-node-book: #D4A574;
+    --color-node-event: #6B9B8A;
+    --font-body: 'DM Sans', 'Noto Sans SC', 'PingFang SC', 'Microsoft YaHei', sans-serif;
+    --font-display: 'Noto Serif SC', 'PingFang SC', serif;
+  }
+
+  @keyframes breathe {
+    0%, 100% { opacity: 0.4; transform: scale(1); }
+    50% { opacity: 1; transform: scale(1.1); }
+  }
+
+  @keyframes pulse-ring {
+    0% { transform: scale(1); opacity: 0.6; }
+    100% { transform: scale(1.8); opacity: 0; }
+  }
+
+  @keyframes flow {
+    0% { stroke-dashoffset: 20; }
+    100% { stroke-dashoffset: 0; }
+  }
+
+  .animate-breathe { animation: breathe 3s ease-in-out infinite; }
+  .animate-pulse-ring { animation: pulse-ring 2s ease-out infinite; }
+  .animate-flow { animation: flow 1.5s linear infinite; }
+
+  .nav-item {
+    @apply flex items-center gap-3 px-4 py-2.5 rounded-lg text-sm font-medium transition-all duration-200 cursor-pointer;
+  }
+  .nav-item:hover { @apply bg-primary/10 text-primary; }
+  .nav-item.active { @apply bg-primary/12 text-primary font-semibold; }
+  .dark .nav-item:hover { @apply bg-primary/20; }
+  .dark .nav-item.active { @apply bg-primary/25; }
+
+  .toolbar-btn {
+    @apply flex items-center gap-1.5 px-3 py-2 rounded-lg text-xs font-medium text-deep-gray/70 dark:text-warm-gray/70 hover:bg-warm-gray dark:hover:bg-dark-border transition-colors cursor-pointer;
+  }
+  .toolbar-btn.active { @apply bg-primary/10 text-primary; }
+
+  .node-card {
+    @apply absolute flex flex-col items-center gap-1 cursor-pointer transition-all duration-200;
+  }
+  .node-card:hover { transform: scale(1.08); }
+
+  .category-item {
+    @apply flex items-center gap-2.5 px-3 py-2 rounded-lg text-sm cursor-pointer hover:bg-warm-gray dark:hover:bg-dark-border transition-colors;
+  }
+</style>
+
+<!-- Top Bar -->
+<header class="fixed top-0 left-0 right-0 h-16 bg-white/80 dark:bg-dark-surface/90 backdrop-blur-md border-b border-deep-gray/8 dark:border-dark-border z-50 flex items-center px-6">
+  <div class="flex items-center gap-2 w-60">
+    <div class="w-8 h-8 bg-primary rounded-lg flex items-center justify-center">
+      <span class="text-white font-bold text-sm font-[--font-display]">醒</span>
+    </div>
+    <span class="text-lg font-semibold font-[--font-display] text-deep-gray dark:text-warm-gray">醒城</span>
+  </div>
+  <div class="flex-1 max-w-xl mx-auto">
+    <div class="relative">
+      <i data-lucide="search" class="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-deep-gray/40 dark:text-warm-gray/40"></i>
+      <input type="text" placeholder="搜索节点、碎片、作品..." class="w-full h-10 pl-10 pr-4 bg-warm-gray/60 dark:bg-dark-border/60 rounded-xl border-none text-sm text-deep-gray dark:text-warm-gray placeholder:text-deep-gray/40 dark:placeholder:text-warm-gray/40 focus:outline-none focus:ring-2 focus:ring-primary/30" />
+    </div>
+  </div>
+  <div class="flex items-center gap-4 w-60 justify-end">
+    <button id="themeToggle" class="w-9 h-9 rounded-lg flex items-center justify-center hover:bg-warm-gray dark:hover:bg-dark-border transition-colors">
+      <i data-lucide="sun" class="w-4.5 h-4.5 text-deep-gray/60 dark:text-warm-gray/60 dark:hidden"></i>
+      <i data-lucide="moon" class="w-4.5 h-4.5 text-warm-gray/60 hidden dark:block"></i>
+    </button>
+    <button class="w-9 h-9 rounded-lg flex items-center justify-center hover:bg-warm-gray dark:hover:bg-dark-border transition-colors relative">
+      <i data-lucide="bell" class="w-4.5 h-4.5 text-deep-gray/60 dark:text-warm-gray/60"></i>
+      <span class="absolute top-1.5 right-1.5 w-2 h-2 bg-primary rounded-full"></span>
+    </button>
+    <div class="w-8 h-8 rounded-full bg-gradient-to-br from-primary to-accent flex items-center justify-center text-white text-xs font-semibold">李</div>
+  </div>
+</header>
+
+<!-- Left Sidebar -->
+<aside class="fixed top-16 left-0 w-60 h-[calc(100vh-4rem)] bg-white dark:bg-dark-surface border-r border-deep-gray/8 dark:border-dark-border py-6 px-3 overflow-y-auto z-40">
+  <nav class="space-y-1">
+    <a href="#home" class="nav-item" data-page="home">
+      <i data-lucide="layout-dashboard" class="w-4.5 h-4.5"></i>
+      <span>首页</span>
+    </a>
+    <a href="#explore" class="nav-item" data-page="explore">
+      <i data-lucide="map-pin" class="w-4.5 h-4.5"></i>
+      <span>游城</span>
+    </a>
+    <a href="#books" class="nav-item" data-page="books">
+      <i data-lucide="book-open" class="w-4.5 h-4.5"></i>
+      <span>寻书</span>
+    </a>
+    <a href="#create" class="nav-item" data-page="create">
+      <i data-lucide="pen-tool" class="w-4.5 h-4.5"></i>
+      <span>共创</span>
+    </a>
+    <a href="#graph" class="nav-item active" data-page="graph">
+      <i data-lucide="git-branch" class="w-4.5 h-4.5"></i>
+      <span>知识图谱</span>
+    </a>
+    <a href="#studio" class="nav-item" data-page="studio">
+      <i data-lucide="layers" class="w-4.5 h-4.5"></i>
+      <span>叙事工作室</span>
+    </a>
+    <a href="#data" class="nav-item" data-page="data">
+      <i data-lucide="bar-chart-3" class="w-4.5 h-4.5"></i>
+      <span>数据看板</span>
+    </a>
+    <a href="#ancient" class="nav-item" data-page="ancient">
+      <i data-lucide="scroll" class="w-4.5 h-4.5"></i>
+      <span>古籍阅读</span>
+    </a>
+    <a href="#community" class="nav-item" data-page="community">
+      <i data-lucide="users" class="w-4.5 h-4.5"></i>
+      <span>社区论坛</span>
+    </a>
+  </nav>
+  <div class="mt-auto pt-6 border-t border-deep-gray/8 dark:border-dark-border mt-8">
+    <a href="#settings" class="nav-item" data-page="settings">
+      <i data-lucide="settings" class="w-4.5 h-4.5"></i>
+      <span>设置</span>
+    </a>
+  </div>
+</aside>
+
+<!-- Main Content Area -->
+<main class="ml-60 pt-16 h-screen flex flex-col">
+  <!-- Toolbar -->
+  <div class="h-12 bg-white dark:bg-dark-surface border-b border-deep-gray/8 dark:border-dark-border flex items-center px-4 gap-1 flex-shrink-0">
+    <div class="toolbar-btn active">
+      <i data-lucide="plus-circle" class="w-3.5 h-3.5"></i>
+      <span>新建节点</span>
+    </div>
+    <div class="toolbar-btn">
+      <i data-lucide="link" class="w-3.5 h-3.5"></i>
+      <span>添加连线</span>
+    </div>
+    <div class="toolbar-btn">
+      <i data-lucide="trash-2" class="w-3.5 h-3.5"></i>
+      <span>删除</span>
+    </div>
+    <div class="w-px h-5 bg-deep-gray/10 dark:bg-dark-border mx-2"></div>
+    <div class="toolbar-btn">
+      <i data-lucide="undo-2" class="w-3.5 h-3.5"></i>
+    </div>
+    <div class="toolbar-btn">
+      <i data-lucide="redo-2" class="w-3.5 h-3.5"></i>
+    </div>
+    <div class="w-px h-5 bg-deep-gray/10 dark:bg-dark-border mx-2"></div>
+    <div class="toolbar-btn">
+      <i data-lucide="save" class="w-3.5 h-3.5"></i>
+      <span>保存</span>
+    </div>
+    <div class="toolbar-btn">
+      <i data-lucide="share-2" class="w-3.5 h-3.5"></i>
+      <span>分享</span>
+    </div>
+    <div class="flex-1"></div>
+    <div class="flex items-center gap-1 bg-warm-gray dark:bg-dark-border rounded-lg p-0.5">
+      <button class="px-2.5 py-1 rounded-md text-xs font-medium bg-white dark:bg-dark-surface text-primary shadow-sm">力导向</button>
+      <button class="px-2.5 py-1 rounded-md text-xs font-medium text-deep-gray/50 dark:text-warm-gray/50">网格</button>
+      <button class="px-2.5 py-1 rounded-md text-xs font-medium text-deep-gray/50 dark:text-warm-gray/50">层次</button>
+    </div>
+  </div>
+
+  <div class="flex flex-1 overflow-hidden">
+    <!-- Node Library Panel -->
+    <div class="w-64 bg-white dark:bg-dark-surface border-r border-deep-gray/8 dark:border-dark-border flex flex-col overflow-hidden flex-shrink-0">
+      <div class="p-4 border-b border-deep-gray/6 dark:border-dark-border">
+        <div class="relative">
+          <i data-lucide="search" class="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-deep-gray/40 dark:text-warm-gray/40"></i>
+          <input type="text" placeholder="搜索节点..." class="w-full h-8 pl-8 pr-3 bg-warm-gray/60 dark:bg-dark-border/60 rounded-lg border-none text-xs text-deep-gray dark:text-warm-gray placeholder:text-deep-gray/40 dark:placeholder:text-warm-gray/40 focus:outline-none focus:ring-2 focus:ring-primary/20" />
+        </div>
+      </div>
+      <div class="flex-1 overflow-y-auto p-3 space-y-4">
+        <!-- People -->
+        <div>
+          <div class="flex items-center gap-2 mb-2 px-1">
+            <div class="w-2.5 h-2.5 rounded-full bg-node-person"></div>
+            <span class="text-xs font-semibold text-deep-gray/60 dark:text-warm-gray/60 uppercase tracking-wide">人物</span>
+          </div>
+          <div class="space-y-0.5">
+            <div class="category-item" draggable="true">
+              <div class="w-6 h-6 rounded-full bg-node-person/15 flex items-center justify-center">
+                <i data-lucide="user" class="w-3 h-3 text-node-person"></i>
+              </div>
+              <span class="text-sm text-deep-gray dark:text-warm-gray">余子俊</span>
+            </div>
+            <div class="category-item" draggable="true">
+              <div class="w-6 h-6 rounded-full bg-node-person/15 flex items-center justify-center">
+                <i data-lucide="user" class="w-3 h-3 text-node-person"></i>
+              </div>
+              <span class="text-sm text-deep-gray dark:text-warm-gray">老城守门人</span>
+            </div>
+            <div class="category-item" draggable="true">
+              <div class="w-6 h-6 rounded-full bg-node-person/15 flex items-center justify-center">
+                <i data-lucide="user" class="w-3 h-3 text-node-person"></i>
+              </div>
+              <span class="text-sm text-deep-gray dark:text-warm-gray">韩世忠</span>
+            </div>
+          </div>
+        </div>
+        <!-- Places -->
+        <div>
+          <div class="flex items-center gap-2 mb-2 px-1">
+            <div class="w-2.5 h-2.5 rounded-full bg-node-place"></div>
+            <span class="text-xs font-semibold text-deep-gray/60 dark:text-warm-gray/60 uppercase tracking-wide">地点</span>
+          </div>
+          <div class="space-y-0.5">
+            <div class="category-item" draggable="true">
+              <div class="w-6 h-6 rounded-full bg-node-place/15 flex items-center justify-center">
+                <i data-lucide="map-pin" class="w-3 h-3 text-node-place"></i>
+              </div>
+              <span class="text-sm text-deep-gray dark:text-warm-gray">凯歌楼</span>
+            </div>
+            <div class="category-item" draggable="true">
+              <div class="w-6 h-6 rounded-full bg-node-place/15 flex items-center justify-center">
+                <i data-lucide="map-pin" class="w-3 h-3 text-node-place"></i>
+              </div>
+              <span class="text-sm text-deep-gray dark:text-warm-gray">镇北台</span>
+            </div>
+            <div class="category-item" draggable="true">
+              <div class="w-6 h-6 rounded-full bg-node-place/15 flex items-center justify-center">
+                <i data-lucide="map-pin" class="w-3 h-3 text-node-place"></i>
+              </div>
+              <span class="text-sm text-deep-gray dark:text-warm-gray">红石峡</span>
+            </div>
+          </div>
+        </div>
+        <!-- Books -->
+        <div>
+          <div class="flex items-center gap-2 mb-2 px-1">
+            <div class="w-2.5 h-2.5 rounded-full bg-node-book"></div>
+            <span class="text-xs font-semibold text-deep-gray/60 dark:text-warm-gray/60 uppercase tracking-wide">书籍</span>
+          </div>
+          <div class="space-y-0.5">
+            <div class="category-item" draggable="true">
+              <div class="w-6 h-6 rounded-full bg-node-book/15 flex items-center justify-center">
+                <i data-lucide="book-open" class="w-3 h-3 text-node-book"></i>
+              </div>
+              <span class="text-sm text-deep-gray dark:text-warm-gray">《榆林府志》</span>
+            </div>
+            <div class="category-item" draggable="true">
+              <div class="w-6 h-6 rounded-full bg-node-book/15 flex items-center justify-center">
+                <i data-lucide="book-open" class="w-3 h-3 text-node-book"></i>
+              </div>
+              <span class="text-sm text-deep-gray dark:text-warm-gray">《延绥镇志》</span>
+            </div>
+          </div>
+        </div>
+        <!-- Events -->
+        <div>
+          <div class="flex items-center gap-2 mb-2 px-1">
+            <div class="w-2.5 h-2.5 rounded-full bg-node-event"></div>
+            <span class="text-xs font-semibold text-deep-gray/60 dark:text-warm-gray/60 uppercase tracking-wide">事件</span>
+          </div>
+          <div class="space-y-0.5">
+            <div class="category-item" draggable="true">
+              <div class="w-6 h-6 rounded-full bg-node-event/15 flex items-center justify-center">
+                <i data-lucide="calendar" class="w-3 h-3 text-node-event"></i>
+              </div>
+              <span class="text-sm text-deep-gray dark:text-warm-gray">长城修建</span>
+            </div>
+            <div class="category-item" draggable="true">
+              <div class="w-6 h-6 rounded-full bg-node-event/15 flex items-center justify-center">
+                <i data-lucide="calendar" class="w-3 h-3 text-node-event"></i>
+              </div>
+              <span class="text-sm text-deep-gray dark:text-warm-gray">榆林开市</span>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="p-3 border-t border-deep-gray/6 dark:border-dark-border">
+        <p class="text-xs text-deep-gray/40 dark:text-warm-gray/40 text-center">拖拽节点到画布添加</p>
+      </div>
+    </div>
+
+    <!-- Canvas Area -->
+    <div class="flex-1 relative overflow-hidden bg-[radial-gradient(circle,_rgba(45,45,45,0.04)_1px,_transparent_1px)] dark:bg-[radial-gradient(circle,_rgba(255,255,255,0.04)_1px,_transparent_1px)] bg-[length:24px_24px]">
+      <!-- SVG Connections -->
+      <svg class="absolute inset-0 w-full h-full pointer-events-none" style="z-index: 1;">
+        <!-- Connection: 余子俊 → 镇北台 -->
+        <path d="M 320 200 C 400 200, 450 300, 530 310" stroke="#C45C3E" stroke-width="2" fill="none" stroke-dasharray="6 4" class="animate-flow" opacity="0.6"/>
+        <polygon points="525,305 535,310 525,315" fill="#C45C3E" opacity="0.6"/>
+        <!-- Connection: 余子俊 → 长城修建 -->
+        <path d="M 320 220 C 380 280, 340 380, 380 400" stroke="#6B9B8A" stroke-width="2" fill="none" stroke-dasharray="6 4" class="animate-flow" opacity="0.5"/>
+        <!-- Connection: 镇北台 → 《榆林府志》 -->
+        <path d="M 560 330 C 600 380, 620 400, 640 430" stroke="#D4A574" stroke-width="2" fill="none" stroke-dasharray="6 4" class="animate-flow" opacity="0.5"/>
+        <!-- Connection: 凯歌楼 → 老城守门人 -->
+        <path d="M 200 400 C 250 350, 300 340, 180 300" stroke="#5B8DB8" stroke-width="1.5" fill="none" stroke-dasharray="6 4" class="animate-flow" opacity="0.4"/>
+      </svg>
+
+      <!-- Nodes -->
+      <div style="z-index: 2; position: relative; width: 100%; height: 100%;">
+        <!-- 余子俊 (selected) -->
+        <div class="node-card" style="left: 280px; top: 170px;">
+          <div class="relative">
+            <div class="absolute inset-0 rounded-full bg-node-person/30 animate-pulse-ring"></div>
+            <div class="w-14 h-14 rounded-full bg-white dark:bg-dark-surface border-3 border-node-person shadow-lg shadow-node-person/20 flex items-center justify-center">
+              <i data-lucide="user" class="w-6 h-6 text-node-person"></i>
+            </div>
+          </div>
+          <span class="text-xs font-medium text-deep-gray dark:text-warm-gray mt-1 bg-white/80 dark:bg-dark-surface/80 px-2 py-0.5 rounded-md">余子俊</span>
+        </div>
+
+        <!-- 镇北台 -->
+        <div class="node-card" style="left: 500px; top: 280px;">
+          <div class="w-12 h-12 rounded-full bg-white dark:bg-dark-surface border-2 border-node-place shadow-md flex items-center justify-center">
+            <i data-lucide="map-pin" class="w-5 h-5 text-node-place"></i>
+          </div>
+          <span class="text-xs font-medium text-deep-gray dark:text-warm-gray mt-1 bg-white/80 dark:bg-dark-surface/80 px-2 py-0.5 rounded-md">镇北台</span>
+        </div>
+
+        <!-- 凯歌楼 -->
+        <div class="node-card" style="left: 160px; top: 370px;">
+          <div class="w-12 h-12 rounded-full bg-white dark:bg-dark-surface border-2 border-node-place shadow-md flex items-center justify-center">
+            <i data-lucide="map-pin" class="w-5 h-5 text-node-place"></i>
+          </div>
+          <span class="text-xs font-medium text-deep-gray dark:text-warm-gray mt-1 bg-white/80 dark:bg-dark-surface/80 px-2 py-0.5 rounded-md">凯歌楼</span>
+        </div>
+
+        <!-- 长城修建 -->
+        <div class="node-card" style="left: 350px; top: 380px;">
+          <div class="w-11 h-11 rounded-full bg-white dark:bg-dark-surface border-2 border-node-event shadow-md flex items-center justify-center">
+            <i data-lucide="calendar" class="w-4.5 h-4.5 text-node-event"></i>
+          </div>
+          <span class="text-xs font-medium text-deep-gray dark:text-warm-gray mt-1 bg-white/80 dark:bg-dark-surface/80 px-2 py-0.5 rounded-md">长城修建</span>
+        </div>
+
+        <!-- 《榆林府志》 -->
+        <div class="node-card" style="left: 600px; top: 420px;">
+          <div class="w-11 h-11 rounded-full bg-white dark:bg-dark-surface border-2 border-node-book shadow-md flex items-center justify-center">
+            <i data-lucide="book-open" class="w-4.5 h-4.5 text-node-book"></i>
+          </div>
+          <span class="text-xs font-medium text-deep-gray dark:text-warm-gray mt-1 bg-white/80 dark:bg-dark-surface/80 px-2 py-0.5 rounded-md">《榆林府志》</span>
+        </div>
+
+        <!-- 老城守门人 -->
+        <div class="node-card" style="left: 130px; top: 250px;">
+          <div class="w-10 h-10 rounded-full bg-white dark:bg-dark-surface border-2 border-node-person shadow-md flex items-center justify-center">
+            <i data-lucide="user" class="w-4 h-4 text-node-person"></i>
+          </div>
+          <span class="text-xs font-medium text-deep-gray dark:text-warm-gray mt-1 bg-white/80 dark:bg-dark-surface/80 px-2 py-0.5 rounded-md">守门人</span>
+        </div>
+
+        <!-- 红石峡 -->
+        <div class="node-card" style="left: 460px; top: 140px;">
+          <div class="w-10 h-10 rounded-full bg-white dark:bg-dark-surface border-2 border-node-place shadow-md flex items-center justify-center">
+            <i data-lucide="map-pin" class="w-4 h-4 text-node-place"></i>
+          </div>
+          <span class="text-xs font-medium text-deep-gray dark:text-warm-gray mt-1 bg-white/80 dark:bg-dark-surface/80 px-2 py-0.5 rounded-md">红石峡</span>
+        </div>
+
+        <!-- Relationship tooltip -->
+        <div class="absolute bg-deep-gray/90 dark:bg-warm-gray/90 text-white dark:text-deep-gray text-xs px-3 py-1.5 rounded-lg shadow-lg" style="left: 390px; top: 245px;">
+          余子俊 → 建造 → 镇北台
+        </div>
+      </div>
+
+      <!-- Canvas Controls -->
+      <div class="absolute bottom-6 left-6 flex items-center gap-2" style="z-index: 10;">
+        <button class="w-8 h-8 bg-white dark:bg-dark-surface rounded-lg shadow-md border border-deep-gray/8 dark:border-dark-border flex items-center justify-center hover:bg-warm-gray dark:hover:bg-dark-border transition-colors">
+          <i data-lucide="plus" class="w-4 h-4 text-deep-gray/60 dark:text-warm-gray/60"></i>
+        </button>
+        <button class="w-8 h-8 bg-white dark:bg-dark-surface rounded-lg shadow-md border border-deep-gray/8 dark:border-dark-border flex items-center justify-center hover:bg-warm-gray dark:hover:bg-dark-border transition-colors">
+          <i data-lucide="minus" class="w-4 h-4 text-deep-gray/60 dark:text-warm-gray/60"></i>
+        </button>
+        <button class="w-8 h-8 bg-white dark:bg-dark-surface rounded-lg shadow-md border border-deep-gray/8 dark:border-dark-border flex items-center justify-center hover:bg-warm-gray dark:hover:bg-dark-border transition-colors">
+          <i data-lucide="maximize-2" class="w-4 h-4 text-deep-gray/60 dark:text-warm-gray/60"></i>
+        </button>
+        <span class="text-xs text-deep-gray/40 dark:text-warm-gray/40 ml-2">100%</span>
+      </div>
+    </div>
+
+    <!-- Right Property Panel -->
+    <div class="w-72 bg-white dark:bg-dark-surface border-l border-deep-gray/8 dark:border-dark-border flex flex-col overflow-hidden flex-shrink-0">
+      <div class="p-4 border-b border-deep-gray/6 dark:border-dark-border">
+        <div class="flex items-center gap-2">
+          <div class="w-3 h-3 rounded-full bg-node-person"></div>
+          <h3 class="text-sm font-semibold text-deep-gray dark:text-warm-gray">节点属性</h3>
+        </div>
+      </div>
+      <div class="flex-1 overflow-y-auto p-4 space-y-5">
+        <!-- Node Info -->
+        <div class="space-y-3">
+          <div>
+            <label class="text-xs font-medium text-deep-gray/50 dark:text-warm-gray/50 mb-1 block">名称</label>
+            <input type="text" value="余子俊" class="w-full h-8 px-3 bg-warm-gray/60 dark:bg-dark-border/60 rounded-lg border-none text-sm text-deep-gray dark:text-warm-gray focus:outline-none focus:ring-2 focus:ring-primary/20" />
+          </div>
+          <div>
+            <label class="text-xs font-medium text-deep-gray/50 dark:text-warm-gray/50 mb-1 block">类型</label>
+            <div class="flex items-center gap-2">
+              <span class="text-xs bg-node-person/12 text-node-person px-2.5 py-1 rounded-md font-medium">人物</span>
+            </div>
+          </div>
+          <div>
+            <label class="text-xs font-medium text-deep-gray/50 dark:text-warm-gray/50 mb-1 block">生卒年</label>
+            <input type="text" value="1429年 - 1489年" class="w-full h-8 px-3 bg-warm-gray/60 dark:bg-dark-border/60 rounded-lg border-none text-sm text-deep-gray dark:text-warm-gray focus:outline-none focus:ring-2 focus:ring-primary/20" />
+          </div>
+          <div>
+            <label class="text-xs font-medium text-deep-gray/50 dark:text-warm-gray/50 mb-1 block">简介</label>
+            <textarea rows="3" class="w-full px-3 py-2 bg-warm-gray/60 dark:bg-dark-border/60 rounded-lg border-none text-xs text-deep-gray dark:text-warm-gray focus:outline-none focus:ring-2 focus:ring-primary/20 resize-none">明代名臣，官至兵部尚书。任延绥巡抚期间，主持修筑榆林长城，奠定了榆林古城的军事防御格局。</textarea>
+          </div>
+          <div>
+            <label class="text-xs font-medium text-deep-gray/50 dark:text-warm-gray/50 mb-1 block">标签</label>
+            <div class="flex flex-wrap gap-1.5">
+              <span class="text-xs bg-warm-gray dark:bg-dark-border text-deep-gray/70 dark:text-warm-gray/70 px-2 py-0.5 rounded-md">明代</span>
+              <span class="text-xs bg-warm-gray dark:bg-dark-border text-deep-gray/70 dark:text-warm-gray/70 px-2 py-0.5 rounded-md">军事</span>
+              <span class="text-xs bg-warm-gray dark:bg-dark-border text-deep-gray/70 dark:text-warm-gray/70 px-2 py-0.5 rounded-md">长城</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Related -->
+        <div class="border-t border-deep-gray/6 dark:border-dark-border pt-4">
+          <label class="text-xs font-medium text-deep-gray/50 dark:text-warm-gray/50 mb-2 block">关联节点</label>
+          <div class="space-y-2">
+            <div class="flex items-center gap-2 p-2 bg-warm-gray/40 dark:bg-dark-border/40 rounded-lg">
+              <div class="w-2 h-2 rounded-full bg-node-place"></div>
+              <span class="text-xs text-deep-gray dark:text-warm-gray">镇北台</span>
+              <span class="text-xs text-deep-gray/40 dark:text-warm-gray/40 ml-auto">建造</span>
+            </div>
+            <div class="flex items-center gap-2 p-2 bg-warm-gray/40 dark:bg-dark-border/40 rounded-lg">
+              <div class="w-2 h-2 rounded-full bg-node-event"></div>
+              <span class="text-xs text-deep-gray dark:text-warm-gray">长城修建</span>
+              <span class="text-xs text-deep-gray/40 dark:text-warm-gray/40 ml-auto">主导</span>
+            </div>
+            <div class="flex items-center gap-2 p-2 bg-warm-gray/40 dark:bg-dark-border/40 rounded-lg">
+              <div class="w-2 h-2 rounded-full bg-node-book"></div>
+              <span class="text-xs text-deep-gray dark:text-warm-gray">《榆林府志》</span>
+              <span class="text-xs text-deep-gray/40 dark:text-warm-gray/40 ml-auto">记载</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Actions -->
+        <div class="flex gap-2">
+          <button class="flex-1 h-8 bg-primary text-white text-xs font-medium rounded-lg hover:bg-primary-light transition-colors">保存</button>
+          <button class="flex-1 h-8 bg-warm-gray dark:bg-dark-border text-deep-gray/70 dark:text-warm-gray/70 text-xs font-medium rounded-lg hover:bg-deep-gray/10 dark:hover:bg-dark-border/80 transition-colors">取消</button>
+        </div>
+
+        <!-- AI Recommendations -->
+        <div class="border-t border-deep-gray/6 dark:border-dark-border pt-4">
+          <div class="flex items-center gap-2 mb-3">
+            <i data-lucide="sparkles" class="w-3.5 h-3.5 text-accent"></i>
+            <label class="text-xs font-medium text-deep-gray/50 dark:text-warm-gray/50">AI 推荐关联</label>
+          </div>
+          <div class="space-y-2">
+            <div class="flex items-center gap-2 p-2 border border-dashed border-deep-gray/15 dark:border-dark-border rounded-lg cursor-pointer hover:border-primary/30 transition-colors">
+              <div class="w-2 h-2 rounded-full bg-node-person"></div>
+              <span class="text-xs text-deep-gray dark:text-warm-gray">杨一清</span>
+              <span class="text-xs text-primary/60 ml-auto">+ 添加</span>
+            </div>
+            <div class="flex items-center gap-2 p-2 border border-dashed border-deep-gray/15 dark:border-dark-border rounded-lg cursor-pointer hover:border-primary/30 transition-colors">
+              <div class="w-2 h-2 rounded-full bg-node-place"></div>
+              <span class="text-xs text-deep-gray dark:text-warm-gray">榆林卫城</span>
+              <span class="text-xs text-primary/60 ml-auto">+ 添加</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Bottom Timeline -->
+  <div class="h-14 bg-white dark:bg-dark-surface border-t border-deep-gray/8 dark:border-dark-border flex items-center px-6 flex-shrink-0">
+    <span class="text-xs font-medium text-deep-gray/50 dark:text-warm-gray/50 mr-4">时间筛选</span>
+    <div class="flex-1 flex items-center gap-1">
+      <div class="relative flex-1 h-1.5 bg-warm-gray dark:bg-dark-border rounded-full">
+        <div class="absolute left-[10%] top-1/2 -translate-y-1/2 w-full h-full" style="width: 60%;">
+          <div class="h-full bg-gradient-to-r from-primary/40 to-accent/40 rounded-full"></div>
+        </div>
+        <div class="absolute left-[10%] top-1/2 -translate-y-1/2 w-3 h-3 bg-primary rounded-full border-2 border-white dark:border-dark-surface shadow-sm cursor-pointer"></div>
+        <div class="absolute left-[70%] top-1/2 -translate-y-1/2 w-3 h-3 bg-accent rounded-full border-2 border-white dark:border-dark-surface shadow-sm cursor-pointer"></div>
+      </div>
+    </div>
+    <div class="flex items-center gap-4 ml-6">
+      <span class="text-xs text-deep-gray/40 dark:text-warm-gray/40 cursor-pointer hover:text-primary transition-colors">明代</span>
+      <span class="text-xs text-primary font-medium">清代</span>
+      <span class="text-xs text-deep-gray/40 dark:text-warm-gray/40 cursor-pointer hover:text-primary transition-colors">民国</span>
+      <span class="text-xs text-deep-gray/40 dark:text-warm-gray/40 cursor-pointer hover:text-primary transition-colors">今日</span>
+    </div>
+  </div>
+</main>
+
+<!-- Dark Mode Script -->
+<script>
+  const toggle = document.getElementById('themeToggle');
+  toggle.addEventListener('click', () => {
+    document.body.classList.toggle('dark');
+  });
+</script>
+</body>
+<script>if (window.lucide) lucide.createIcons();</script>
+</html>
